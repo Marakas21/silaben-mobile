@@ -8,16 +8,87 @@ import {
   TouchableOpacity,
   TextInput as RNTextInput,
   Image,
+  Alert,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import {useFocusEffect} from '@react-navigation/native';
 
 const SignIn = ({navigation}) => {
-  const [selectedRole, setSelectedRole] = useState('Anggota Reguler');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setName('');
+      setPassword('');
+      setRole('');
+    }, []),
+  );
+
+  const handleSignIn = () => {
+    // if (!name || !password || !role) {
+    //   Alert.alert('Error Message', 'Fields cannot be empty');
+    //   return;
+    // }
+
+    const requestBody = {
+      name: name,
+      password: password,
+      role: role,
+    };
+
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out'));
+      }, 5000);
+    });
+
+    Promise.race([
+      fetch('https://silaben.site/app/public/login/loginmobile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: Object.keys(requestBody)
+          .map(
+            key =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(
+                requestBody[key],
+              )}`,
+          )
+          .join('&'),
+      }),
+      timeoutPromise,
+    ])
+      .then(response => response.text())
+      .then(textData => {
+        console.log(textData);
+        console.log(requestBody);
+        // if (textData.includes('ERROR')) {
+        //   Alert.alert(
+        //     'Error Message',
+        //     'Sorry, login failed. Please try again.',
+        //   );
+        //   return;
+        // }
+
+        // if (textData.includes('SUCCESS')) {
+        //   const jsonString = textData.split('SUCCESS')[1];
+        //   const jsonData = JSON.parse(jsonString);
+        //   Alert.alert('Login Success', 'Welcome to Silaben.');
+        //   navigation.navigate('HomeRelawan', {jsonData});
+        // }
+      })
+      .catch(error => {
+        Alert.alert('Error Message', error.message);
+      });
+  };
 
   return (
     <ScrollView style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/bencana-splash.jpg')} // replace with your image path
+        source={require('../../assets/images/bencana-splash.jpg')}
         style={styles.topImage}
         imageStyle={styles.imageStyle}>
         <View style={styles.overlay} />
@@ -30,15 +101,14 @@ const SignIn = ({navigation}) => {
         <Text style={styles.subHeaderText}>
           Tanggap Cepat, Selamatkan Nyawa
         </Text>
-
         <View style={styles.pickerWrapper}>
           <Image
             source={require('../../assets/images/Role.png')}
             style={styles.inputIcon}
           />
           <Picker
-            selectedValue={selectedRole}
-            onValueChange={itemValue => setSelectedRole(itemValue)}
+            selectedValue={role}
+            onValueChange={itemValue => setRole(itemValue)}
             style={styles.picker}>
             <Picker.Item label="Select your Role" value="" />
             <Picker.Item label="Anggota Reguler" value="Anggota Reguler" />
@@ -48,10 +118,33 @@ const SignIn = ({navigation}) => {
         </View>
         <View style={styles.inputWrapper}>
           <Image
+            source={require('../../assets/images/Role.png')}
+            style={styles.inputIcon}
+          />
+          <RNTextInput
+            placeholder="Type your Role"
+            style={styles.input}
+            value={role}
+            onChangeText={setRole}
+            autoCapitalize="none"
+            keyboardType="role"
+            autoCompleteType="role"
+          />
+        </View>
+        <View style={styles.inputWrapper}>
+          <Image
             source={require('../../assets/images/Username.png')}
             style={styles.inputIcon}
           />
-          <RNTextInput placeholder="Type your User Name" style={styles.input} />
+          <RNTextInput
+            placeholder="Type your User Name"
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="none"
+            keyboardType="name"
+            autoCompleteType="name"
+          />
         </View>
         <View style={styles.inputWrapper}>
           <Image
@@ -60,16 +153,17 @@ const SignIn = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your Password"
-            secureTextEntry
             style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            autoCompleteType="password"
           />
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.sub3HeaderText}>Forgot Password?</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('HomeMasyarakat')}>
+        <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -81,8 +175,6 @@ const SignIn = ({navigation}) => {
     </ScrollView>
   );
 };
-
-export default SignIn;
 
 const styles = StyleSheet.create({
   container: {
@@ -100,7 +192,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 51, 102, 0.3)', // Softer #003366 with 30% opacity
+    backgroundColor: 'rgba(0, 51, 102, 0.3)',
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
   },
@@ -137,12 +229,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-  sub2HeaderText: {
-    fontSize: 18,
-    color: 'black',
-    textAlign: 'left',
-    marginBottom: 8,
-  },
   sub3HeaderText: {
     fontSize: 15,
     color: 'grey',
@@ -155,17 +241,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    paddingLeft: 10, // Adjusted for icon spacing
-  },
-  pickerIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  picker: {
-    flex: 1,
-    height: 50,
-    fontSize: 0.2,
+    paddingLeft: 10,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -174,7 +250,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     paddingLeft: 10,
-    height: 50, // Adjusted for icon spacing
+    height: 50,
     marginTop: 25,
   },
   inputIcon: {
@@ -203,3 +279,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default SignIn;
