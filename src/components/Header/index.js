@@ -20,17 +20,19 @@ const Header = ({navigation}) => {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#007bff',
-    padding: 40,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    backgroundColor: '#003366',
+    padding: 30,
+    alignItems: 'center',
+    borderBottomRightRadius: 5,
+    borderBottomLeftRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 40,
   },
   headerText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
-    flexDirection: 'row',
-    marginBottom: 20,
   },
 });
 
