@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const App = () => {
+const HomeMasyarakat = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View>
@@ -10,10 +10,24 @@ const App = () => {
           <Text style={styles.headerText}>Sigap Lapor Bencana</Text>
         </LinearGradient>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+      <View style={styles.userContainer}>
+        <View style={styles.user}>
           <Image
-            source={require('../../../src/assets/images/maps.png')}
+            source={require('../../../src/assets/images/big_profile.png')}
+            style={styles.userIcon}
+          />
+          <View>
+            <Text style={styles.userName}>Bob Marley</Text>
+            <Text style={styles.userStatus}>User</Text>
+          </View>
+        </View>
+      </View>
+      {/* <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('MapScreen')}>
+          <Image
+            source={require('../../../src/assets/images/map.png')}
             style={styles.buttonIcon}
           />
           <Text style={styles.buttonText}>Peta Bencana</Text>
@@ -25,42 +39,105 @@ const App = () => {
           />
           <Text style={styles.buttonText}>History Pelaporan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Pelaporan')}>
           <Image
-            source={require('../../../src/assets/images/add_report.png')}
+            source={require('../../../src/assets/images/add_new_report.png')}
             style={styles.buttonIcon}
           />
           <Text style={styles.buttonText}>Buat Pelaporan</Text>
         </TouchableOpacity>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+      </View> */}
+      <View style={styles.menuContainer}>
+        <TouchableOpacity
+          style={styles.buttonIconMap}
+          onPress={() => navigation.navigate('MapScreen')}>
+          <Image
+            source={require('../../../src/assets/images/maps.png')}
+            style={styles.imageButton}
+          />
+          <Text style={styles.menuItemText}>Peta Bencana</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonIconReportHistory}
+          onPress={() => navigation.navigate('HistoryPelaporan')}>
           <Image
             source={require('../../../src/assets/images/report_history.png')}
-            style={styles.buttonIcon}
+            style={styles.imageButton}
           />
-          <Text style={styles.buttonText}>History Relawan</Text>
+          <Text style={styles.menuItemText}>History Pelaporan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.buttonIconReportHistory}
+          onPress={() => navigation.navigate('HistoryPelaporan')}>
+          <Image
+            source={require('../../../src/assets/images/report_history.png')}
+            style={styles.imageButton}
+          />
+          <Text style={styles.menuItemText}>History Relawan</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonIconProfile}
+          onPress={() => navigation.navigate('Profile')}>
+          <Image
+            source={require('../../../src/assets/images/profile_pict2.png')}
+            style={styles.imageButton}
+          />
+          <Text style={styles.menuItemText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonIconAddReport}
+          onPress={() => navigation.navigate('Pelaporan')}>
+          <Image
+            source={require('../../../src/assets/images/add_report.png')}
+            style={styles.imageButton}
+          />
+          <Text style={styles.menuItemText}>Buat Pelaporan</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonIconChangePass}
+          onPress={() => navigation.navigate('Profile')}>
           <Image
             source={require('../../../src/assets/images/change_pass.png')}
-            style={styles.buttonIcon}
+            style={styles.imageButton}
           />
-          <Text style={styles.buttonText}>Change Password</Text>
+          <Text style={styles.menuItemText}>Ubah Password</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.buttonIconLogout}
+          onPress={() => navigation.navigate('SignIn')}>
           <Image
             source={require('../../../src/assets/images/logout.png')}
-            style={styles.buttonIcon}
+            style={styles.imageButton}
           />
-          <Text style={styles.buttonText}>Logout</Text>
+          <Text style={styles.menuItemText}>Logout</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+      </View>
+      <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('MapScreen')}>
           <Image
-            source={require('../../../src/assets/images/profile_pict.png')}
-            style={styles.buttonIcon}
+            source={require('../../../src/assets/images/maps2.png')}
+            style={styles.navIcon}
           />
-          <Text style={styles.buttonText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Pelaporan')}>
+          <Image
+            source={require('../../../src/assets/images/add_report2.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Profile')}>
+          <Image
+            source={require('../../../src/assets/images/profile_pict3.png')}
+            style={styles.navIcon}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -126,20 +203,95 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingLeft: 20,
     paddingRight: 20,
+    paddingBottom: 20,
     flexWrap: 'wrap',
   },
   button: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    marginBottom: 15,
+    padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     width: '30%',
   },
+  buttonIconMap: {
+    width: '40%',
+    margin: 10,
+    padding: 15,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#FCF0D2',
+  },
+  buttonIconReportHistory: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#E9FFF3',
+  },
+  buttonIconProfile: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#E1EFFF',
+  },
+  buttonIconAddReport: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#FFE9EA',
+  },
+  buttonIconChangePass: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#D2FCF7',
+  },
+  buttonIconLogout: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    backgroundColor: '#F1E8FF',
+  },
   buttonIcon: {
-    width: 25,
-    height: 25,
+    width: 20,
+    height: 20,
+  },
+  imageButton: {
+    width: 45,
+    height: 45,
   },
   buttonText: {
     fontSize: 12,
@@ -148,6 +300,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  menuContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  menuItem: {
+    width: '40%',
+    margin: 10,
+    padding: 20,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  menuItemText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  navbar: {
+    marginTop: 35,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 15,
+    borderTopWidth: 1,
+    borderColor: '#EEEEEE',
+    backgroundColor: '#FFFFFF',
+  },
+  navButton: {
+    alignItems: 'center',
+  },
+  navIcon: {
+    width: 30,
+    height: 30,
+  },
 });
 
-export default App;
+export default HomeMasyarakat;
