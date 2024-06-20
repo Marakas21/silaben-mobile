@@ -8,23 +8,13 @@ import {
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Header from '../../components/Header';
+import Navbar from '../../components/Navbar';
 
 const CashonDigital = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <View>
-        <LinearGradient
-          colors={['#0066CC', '#003366']}
-          style={styles.header}
-          onPress={() => navigation.navigate('HomeMasyarakat')}>
-          <Text style={styles.headerText}>History Pelaporan</Text>
-          <Image
-            source={require('../../../src/assets/images/home_white.png')}
-            style={styles.buttonIcon}
-            onPress={() => navigation.navigate('HomeMasyarakat')}
-          />
-        </LinearGradient>
-      </View>
+      <Header />
       <View style={styles.reportCard}>
         <View style={styles.cardHeader}>
           <Text style={styles.reportTitle}>Pohon Tumbang</Text>
@@ -40,25 +30,28 @@ const CashonDigital = ({navigation}) => {
         />
       </View>
       <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('MapScreen')}>
           <Image
             source={require('../../../src/assets/images/maps2.png')}
             style={styles.navIcon}
-            onPress={() => navigation.navigate('Maps')}
           />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Pelaporan')}>
           <Image
             source={require('../../../src/assets/images/add_report2.png')}
             style={styles.navIcon}
-            onPress={() => navigation.navigate('Home')}
           />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Profile')}>
           <Image
             source={require('../../../src/assets/images/profile_pict3.png')}
             style={styles.navIcon}
-            onPress={() => navigation.navigate('Profile')}
           />
         </TouchableOpacity>
       </View>
