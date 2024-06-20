@@ -14,8 +14,6 @@ import {Picker} from '@react-native-picker/picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
-import Header from '../../components/Header';
-import Navbar from '../../components/Navbar';
 
 const App = ({navigation}) => {
   const [description, setDescription] = useState('');
@@ -97,7 +95,6 @@ const App = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
       <View>
         <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
           <Text style={styles.headerText}>Buat Pelaporan</Text>
