@@ -38,11 +38,11 @@ const SignIn = ({navigation}) => {
       role: role,
     };
 
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject(new Error('Request timed out'));
-      }, 5000);
-    });
+    // const timeoutPromise = new Promise((resolve, reject) => {
+    //   setTimeout(() => {
+    //     reject(new Error('Request timed out'));
+    //   }, 10000);
+    // });
 
     Promise.race([
       fetch('https://silaben.site/app/public/login/loginmobile', {
@@ -59,26 +59,24 @@ const SignIn = ({navigation}) => {
           )
           .join('&'),
       }),
-      timeoutPromise,
+      // timeoutPromise,
     ])
       .then(response => response.text())
       .then(textData => {
         console.log(textData);
         console.log(requestBody);
-        // if (textData.includes('ERROR')) {
-        //   Alert.alert(
-        //     'Error Message',
-        //     'Sorry, login failed. Please try again.',
-        //   );
-        //   return;
-        // }
+        if (textData.includes('ERROR')) {
+          Alert.alert(
+            'Error Message',
+            'Sorry, login failed. Please try again.',
+          );
+          return;
+        }
 
-        // if (textData.includes('SUCCESS')) {
-        //   const jsonString = textData.split('SUCCESS')[1];
-        //   const jsonData = JSON.parse(jsonString);
-        //   Alert.alert('Login Success', 'Welcome to Silaben.');
-        //   navigation.navigate('HomeRelawan', {jsonData});
-        // }
+        if (textData.includes(textData)) {
+          Alert.alert('Login Success', 'Welcome to Silaben.');
+          navigation.navigate('HomeRelawan');
+        }
       })
       .catch(error => {
         Alert.alert('Error Message', error.message);
@@ -101,7 +99,7 @@ const SignIn = ({navigation}) => {
         <Text style={styles.subHeaderText}>
           Tanggap Cepat, Selamatkan Nyawa
         </Text>
-        <View style={styles.pickerWrapper}>
+        {/* <View style={styles.pickerWrapper}>
           <Image
             source={require('../../assets/images/Role.png')}
             style={styles.inputIcon}
@@ -115,7 +113,7 @@ const SignIn = ({navigation}) => {
             <Picker.Item label="Relawan" value="Relawan" />
             <Picker.Item label="Admin" value="Admin" />
           </Picker>
-        </View>
+        </View> */}
         <View style={styles.inputWrapper}>
           <Image
             source={require('../../assets/images/Role.png')}
@@ -251,7 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingLeft: 10,
     height: 50,
-    marginTop: 25,
+    marginTop: 20,
   },
   inputIcon: {
     width: 25,
