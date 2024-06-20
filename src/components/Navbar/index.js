@@ -34,13 +34,13 @@ const Navbar = ({navigation}) => {
 
 const styles = StyleSheet.create({
   navbar: {
-    marginTop: 35,
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 15,
     borderTopWidth: 1,
     borderColor: '#EEEEEE',
     backgroundColor: '#FFFFFF',
+    marginTop: 270,
   },
   navButton: {
     alignItems: 'center',
