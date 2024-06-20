@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   PermissionsAndroid,
-  Linking,
   Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -15,6 +14,8 @@ import {Picker} from '@react-native-picker/picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Geolocation from '@react-native-community/geolocation';
 import LinearGradient from 'react-native-linear-gradient';
+import Header from '../../components/Header';
+import Navbar from '../../components/Navbar';
 
 const App = ({navigation}) => {
   const [description, setDescription] = useState('');
@@ -23,14 +24,7 @@ const App = ({navigation}) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [date, setDate] = useState('');
   const [disasterType, setDisasterType] = useState('');
-  const [locationText, setLocationText] = useState('');
-  const [mapModalVisible, setMapModalVisible] = useState(false);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
+  const [locationText, setLocationText] = useState('Dapatkan Lokasi Anda');
 
   const requestLocationPermission = async () => {
     try {
@@ -48,8 +42,7 @@ const App = ({navigation}) => {
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('Location permission granted');
         getCurrentLocation();
-        // Update the UI to display the current location
-        setLocationText('Getting current location...');
+        setLocationText('Mengambil lokasi...');
       } else {
         console.log('Location permission denied');
       }
@@ -65,9 +58,11 @@ const App = ({navigation}) => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
+        setLocationText('Lokasi ditemukan');
       },
       error => {
         console.log('Error getting location:', error);
+        setLocationText('Gagal mendapatkan lokasi');
       },
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
@@ -96,33 +91,23 @@ const App = ({navigation}) => {
   };
 
   const handleConfirm = selectedDate => {
-    const currentDate = selectedDate || date;
-    setDate(currentDate.toLocaleDateString());
+    setDate(selectedDate.toLocaleDateString());
     hideDatePicker();
-  };
-
-  const handleMapPress = event => {
-    setLocation({
-      latitude: event.nativeEvent.coordinate.latitude,
-      longitude: event.nativeEvent.coordinate.longitude,
-    });
-    setMapModalVisible(false);
-  };
-
-  const toggleMapModal = () => {
-    setMapModalVisible(!mapModalVisible);
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      <Header />
       <View>
         <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
           <Text style={styles.headerText}>Buat Pelaporan</Text>
-          <Image
-            source={require('../../../src/assets/images/home_white.png')}
-            style={styles.buttonIcon}
-            onPress={() => navigation.navigate('HomeMasyarakat')}
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
         </LinearGradient>
       </View>
 
@@ -133,32 +118,16 @@ const App = ({navigation}) => {
             selectedValue={disasterType}
             onValueChange={itemValue => setDisasterType(itemValue)}
             style={styles.picker}>
-            <Picker.Item
-              style={styles.textPicker}
-              label="Pilih Jenis Bencana"
-              value=""
-            />
-            <Picker.Item
-              style={styles.textPicker}
-              label="Banjir"
-              value="banjir"
-            />
-            <Picker.Item
-              style={styles.textPicker}
-              label="Gempa Bumi"
-              value="gempa"
-            />
-            <Picker.Item
-              style={styles.textPicker}
-              label="Kebakaran"
-              value="kebakaran"
-            />
+            <Picker.Item label="Pilih Jenis Bencana" value="" />
+            <Picker.Item label="Banjir" value="banjir" />
+            <Picker.Item label="Gempa Bumi" value="gempa" />
+            <Picker.Item label="Kebakaran" value="kebakaran" />
           </Picker>
         </View>
         <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
           <Text>{date ? date : 'Tanggal Kejadian Bencana'}</Text>
           <Image
-            source={require('../../../src/assets/images/calender.png')}
+            source={require('../../../src/assets/images/calendar.png')}
             style={styles.icon}
           />
         </TouchableOpacity>
@@ -178,18 +147,11 @@ const App = ({navigation}) => {
           <TouchableOpacity
             onPress={requestLocationPermission}
             style={styles.iconButton}>
-            {location ? (
-              <Text style={styles.buttonText}>
-                {location.latitude}, {location.longitude}
-              </Text>
-            ) : (
-              <Text style={styles.buttonText}>{locationText}</Text>
-            )}
+            <Text style={styles.buttonText}>{locationText}</Text>
             <Image
               source={require('../../../src/assets/images/location.png')}
               style={styles.icon}
             />
-            <Text style={styles.buttonText}>Lokasi Bencana</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleImagePicker}
@@ -260,11 +222,6 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
-    fontSize: 0.5,
-  },
-  textPicker: {
-    fontSize: 13,
-    color: '#929292',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -295,21 +252,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-    marginTop: 170,
+  buttonIcon: {
+    width: 24,
+    height: 24,
   },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
+  icon: {
+    width: 20,
+    height: 20,
   },
 });
 
