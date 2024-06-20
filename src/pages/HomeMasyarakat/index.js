@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const App = ({navigation}) => {
+const HomeMasyarakat = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View>
@@ -331,4 +331,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default HomeMasyarakat;
