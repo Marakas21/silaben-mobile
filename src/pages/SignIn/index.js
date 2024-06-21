@@ -27,10 +27,10 @@ const SignIn = ({navigation}) => {
   );
 
   const handleSignIn = () => {
-    // if (!name || !password || !role) {
-    //   Alert.alert('Error Message', 'Fields cannot be empty');
-    //   return;
-    // }
+    if (!name || !password || !role) {
+      Alert.alert('Error Message', 'Fields cannot be empty');
+      return;
+    }
 
     const requestBody = {
       name: name,
@@ -38,11 +38,11 @@ const SignIn = ({navigation}) => {
       role: role,
     };
 
-    // const timeoutPromise = new Promise((resolve, reject) => {
-    //   setTimeout(() => {
-    //     reject(new Error('Request timed out'));
-    //   }, 10000);
-    // });
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out'));
+      }, 10000);
+    });
 
     Promise.race([
       fetch('https://silaben.site/app/public/login/loginmobile', {
@@ -59,12 +59,13 @@ const SignIn = ({navigation}) => {
           )
           .join('&'),
       }),
-      // timeoutPromise,
+      timeoutPromise,
     ])
       .then(response => response.text())
       .then(textData => {
-        console.log(textData);
-        console.log(requestBody);
+        const parsedData = JSON.parse(textData);
+        const jsonData = parsedData['status-login'][0];
+
         if (textData.includes('ERROR')) {
           Alert.alert(
             'Error Message',
@@ -75,7 +76,7 @@ const SignIn = ({navigation}) => {
 
         if (textData.includes(textData)) {
           Alert.alert('Login Success', 'Welcome to Silaben.');
-          navigation.navigate('HomeRelawan');
+          navigation.navigate('HomeRelawan', {jsonData});
         }
       })
       .catch(error => {
@@ -99,7 +100,7 @@ const SignIn = ({navigation}) => {
         <Text style={styles.subHeaderText}>
           Tanggap Cepat, Selamatkan Nyawa
         </Text>
-        {/* <View style={styles.pickerWrapper}>
+        <View style={styles.pickerWrapper}>
           <Image
             source={require('../../assets/images/Role.png')}
             style={styles.inputIcon}
@@ -110,24 +111,8 @@ const SignIn = ({navigation}) => {
             style={styles.picker}>
             <Picker.Item label="Select your Role" value="" />
             <Picker.Item label="Anggota Reguler" value="Anggota Reguler" />
-            <Picker.Item label="Relawan" value="Relawan" />
-            <Picker.Item label="Admin" value="Admin" />
+            <Picker.Item label="relawan" value="relawan" />
           </Picker>
-        </View> */}
-        <View style={styles.inputWrapper}>
-          <Image
-            source={require('../../assets/images/Role.png')}
-            style={styles.inputIcon}
-          />
-          <RNTextInput
-            placeholder="Type your Role"
-            style={styles.input}
-            value={role}
-            onChangeText={setRole}
-            autoCapitalize="none"
-            keyboardType="role"
-            autoCompleteType="role"
-          />
         </View>
         <View style={styles.inputWrapper}>
           <Image
@@ -140,8 +125,8 @@ const SignIn = ({navigation}) => {
             value={name}
             onChangeText={setName}
             autoCapitalize="none"
-            keyboardType="name"
-            autoCompleteType="name"
+            keyboardType="default"
+            autoCompleteType="username"
           />
         </View>
         <View style={styles.inputWrapper}>
@@ -240,6 +225,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
     paddingLeft: 10,
+  },
+  picker: {
+    flex: 1,
+    height: 50,
   },
   inputWrapper: {
     flexDirection: 'row',
