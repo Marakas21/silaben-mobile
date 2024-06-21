@@ -8,33 +8,169 @@ import {
   Image,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker'; // Corrected import
 import {useNavigation} from '@react-navigation/native'; // Import useNavigation
 
 const CashonOvo = () => {
-  const [gender, setGender] = useState('');
-  const [expertise, setExpertise] = useState('');
-  const [address, setAddress] = useState('');
-  const [nik, setNik] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [currentResidence, setCurrentResidence] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [job, setJob] = useState('');
-  const [pass, setPass] = useState('');
-  const [birthDate, setBirthDate] = useState(new Date());
   const [show, setShow] = useState(false);
+
+  const [nik, setNik] = useState('');
+  const [full_name, setFullName] = useState('');
+  const [genderrelawan, setGenderRelawan] = useState('');
+  const [dob, setDob] = useState('');
+  const [emailrelawan, setEmailrelawan] = useState('');
+  const [current_address, setCurrentAddress] = useState('');
+  const [whatsapp_number_relawan, setWhatsappNumbeRelawan] = useState('');
+  const [job, setJob] = useState('');
+  const [passwordrelawan, setPasswordRelawan] = useState('');
+  const [birthDate, setBirthDate] = useState(new Date());
 
   const navigation = useNavigation(); // Initialize navigation
 
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || birthDate;
-    setShow(Platform.OS === 'ios');
-    setBirthDate(currentDate);
+  const handleCreateAccount = () => {
+    // check if input fields are not empty or only spaces
+    if (
+      !nik ||
+      !full_name ||
+      !genderrelawan ||
+      !dob ||
+      !emailrelawan ||
+      !current_address ||
+      !whatsapp_number_relawan ||
+      !job ||
+      !passwordrelawan
+    ) {
+      Alert.alert(
+        'Empty Input Field',
+        'Check again, all fields cannot be empty or contain only spaces.',
+      );
+      return;
+    }
+
+    // check if email format is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailrelawan)) {
+      Alert.alert('Error Message', 'Invalid email format.');
+      return;
+    }
+
+    // if (passwordrelawan !== passwordrelawan) {
+    //   Alert.alert('Student Password', 'Please re-type the same password.');
+    //   return;
+    // }
+
+    // if (password !== repassword) {
+    //   Alert.alert(
+    //     'Student Password',
+    //     'Passwords do not match. Please enter the same password in both fields.',
+    //   );
+    //   return;
+    // }
+
+    // if (password.length < 8 || repassword.length < 8) {
+    //   Alert.alert(
+    //     'Student Password',
+    //     'Password length must be at least 8 characters.',
+    //   );
+    //   return;
+    // }
+
+    // create request body with email and password input values
+    const requestBody = {
+      full_name: full_name,
+      nik: nik,
+      genderrelawan: genderrelawan,
+      dob: dob,
+      emailrelawan: emailrelawan,
+      current_address: current_address,
+      whatsapp_number_relawan: whatsapp_number_relawan,
+      job: job,
+      passwordrelawan: passwordrelawan,
+    };
+
+    // Time out request data
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out.'));
+      }, 5000); // 5000 (5 detik)
+    });
+
+    Promise.race([
+      fetch('https://silaben.site/app/public/login/regist_mobile_relawan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: Object.keys(requestBody)
+          .map(
+            key =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(
+                requestBody[key],
+              )}`,
+          )
+          .join('&'),
+      }),
+      timeoutPromise,
+    ])
+      .then(response => response.text())
+      .then(textData => {
+        // handle response data
+        console.log(textData);
+
+        // check if textData contains "ERROR"
+        if (textData.includes('ERROR')) {
+          // handle error case
+          //console.error("Login failed:", textData);
+          Alert.alert(
+            'Error Message',
+            'Sorry, create new account failed. Please try again.',
+          );
+          return;
+        }
+
+        // check if textData contains "INCORRECT"
+        if (textData.includes('DUPLICATE')) {
+          // handle INCORRECT case
+          Alert.alert(
+            'Error Message',
+            'Sorry, duplicate email/nim/reg.number were found in database. Please contact the administrator.',
+          );
+          return;
+        }
+        console.log(textData);
+        console.log(requestBody);
+
+        if (textData.includes(textData)) {
+          // message
+          Alert.alert('User Account', 'New account was created successfully.');
+
+          // Set empty field
+          setNik('');
+          setFullName('');
+          setGenderRelawan('');
+          setDob('');
+          setEmailrelawan('');
+          setCurrentAddress('');
+          setWhatsappNumbeRelawan('');
+          setJob('');
+          setPasswordRelawan('');
+        }
+      })
+      .catch(error => {
+        //console.error(error);
+        Alert.alert('Error Message', error.message);
+        return;
+      });
   };
 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dob;
+    setShow(Platform.OS === 'ios');
+    setDob(currentDate);
+  };
   const showMode = currentMode => {
     setShow(true);
   };
@@ -47,10 +183,10 @@ const CashonOvo = () => {
         <View style={styles.radioGroup}>
           <TouchableOpacity
             style={styles.radioButton}
-            onPress={() => setGender('Laki-laki')}>
+            onPress={() => setGenderRelawan('Laki-laki')}>
             <View
               style={
-                gender === 'Laki-laki'
+                genderrelawan === 'Laki-laki'
                   ? styles.radioSelected
                   : styles.radioUnselected
               }
@@ -59,30 +195,16 @@ const CashonOvo = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.radioButton}
-            onPress={() => setGender('Perempuan')}>
+            onPress={() => setGenderRelawan('Perempuan')}>
             <View
               style={
-                gender === 'Perempuan'
+                genderrelawan === 'Perempuan'
                   ? styles.radioSelected
                   : styles.radioUnselected
               }
             />
             <Text style={styles.radioText}>Perempuan</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.formGroup}>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={expertise}
-            style={styles.picker}
-            onValueChange={itemValue => setExpertise(itemValue)}>
-            <Picker.Item label="Pilih Bidang Keahlian" value="" />
-            <Picker.Item label="Medis" value="Medis" />
-            <Picker.Item label="Teknis" value="Teknis" />
-            <Picker.Item label="Logistik" value="Logistik" />
-            {/* Add more expertise options as needed */}
-          </Picker>
         </View>
       </View>
       <View style={styles.formGroup}>
@@ -93,8 +215,8 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Alamat"
-          value={address}
-          onChangeText={text => setAddress(text)}
+          value={current_address}
+          onChangeText={text => setCurrentAddress(text)}
         />
       </View>
       <View style={styles.formGroup}>
@@ -117,7 +239,7 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Nama Lengkap"
-          value={fullName}
+          value={full_name}
           onChangeText={text => setFullName(text)}
         />
       </View>
@@ -130,17 +252,18 @@ const CashonOvo = () => {
           onPress={() => showMode('date')}
           style={styles.datePickerButton}>
           <Text style={styles.datePickerText}>
-            {birthDate ? birthDate.toLocaleDateString() : 'Tanggal Lahir'}
+            {dob ? dob.toLocaleDateString() : 'Tanggal Lahir'}
           </Text>
         </TouchableOpacity>
         {show && (
           <DateTimePicker
-            value={birthDate}
+            value={dob ? new Date(dob) : new Date()}
             mode="date"
             display="default"
             onChange={onChange}
             minimumDate={new Date(1900, 0, 1)}
             maximumDate={new Date(2100, 11, 31)}
+            onChangeText={text => setDob(text)}
           />
         )}
       </View>
@@ -152,11 +275,11 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          value={email}
-          onChangeText={text => setEmail(text)}
+          value={emailrelawan}
+          onChangeText={text => setEmailrelawan(text)}
         />
       </View>
-      <View style={styles.formGroup}>
+      {/* <View style={styles.formGroup}>
         <Image
           source={require('../../assets/images/address1.png')}
           style={styles.icon}
@@ -164,10 +287,10 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Tempat tinggal sekarang ini"
-          value={currentResidence}
-          onChangeText={text => setCurrentResidence(text)}
+          value={current_address}
+          onChangeText={text => setCurrentAddress(text)}
         />
-      </View>
+      </View> */}
       <View style={styles.formGroup}>
         <Image
           source={require('../../assets/images/whatsapp.png')}
@@ -176,8 +299,8 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Nomor Whatsapp aktif"
-          value={whatsapp}
-          onChangeText={text => setWhatsapp(text)}
+          value={whatsapp_number_relawan}
+          onChangeText={text => setWhatsappNumbeRelawan(text)}
         />
       </View>
       <View style={styles.formGroup}>
@@ -200,14 +323,14 @@ const CashonOvo = () => {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          value={pass}
-          onChangeText={text => setPass(text)}
+          value={passwordrelawan}
+          onChangeText={text => setPasswordRelawan(text)}
           secureTextEntry
         />
       </View>
       <TouchableOpacity
         style={styles.submitButton}
-        onPress={() => navigation.navigate('SignIn')} // Navigate on button press
+        onPress={handleCreateAccount} // Navigate on button press
       >
         <Text style={styles.submitButtonText}>Kirim</Text>
       </TouchableOpacity>
