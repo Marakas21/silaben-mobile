@@ -1,119 +1,106 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const HomeMasyarakat = ({navigation}) => {
+const HomeMasyarakat = ({navigation, route}) => {
+  // cara mendapatkan data dari paramenter
+  const {jsonData} = route.params;
+  console.log('Ini adalah Home screen relawan:');
+  console.log(jsonData);
+
   return (
     <View style={styles.container}>
-      <View>
-        <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-          <Text style={styles.headerText}>Sigap Lapor Bencana</Text>
-        </LinearGradient>
-      </View>
-      <View style={styles.userContainer}>
-        <View style={styles.user}>
-          <Image
-            source={require('../../../src/assets/images/big_profile.png')}
-            style={styles.userIcon}
-          />
-          <View>
-            <Text style={styles.userName}>Bob Marley</Text>
-            <Text style={styles.userStatus}>User</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View>
+          <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
+            <Text style={styles.headerText}>Sigap Lapor Bencana</Text>
+          </LinearGradient>
+        </View>
+        <View style={styles.userContainer}>
+          <View style={styles.user}>
+            <Image
+              source={require('../../../src/assets/images/big_profile.png')}
+              style={styles.userIcon}
+            />
+            <View>
+              <Text style={styles.userName}>{jsonData.nama_relawan}</Text>
+              <Text style={styles.userStatus}>{jsonData.email}</Text>
+            </View>
           </View>
         </View>
-      </View>
-      {/* <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/map.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>Peta Bencana</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
-          <Image
-            source={require('../../../src/assets/images/report_history.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>History Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_new_report.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>Buat Pelaporan</Text>
-        </TouchableOpacity>
-      </View> */}
-      <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={styles.buttonIconMap}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/maps.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Peta Bencana</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconReportHistory}
-          onPress={() => navigation.navigate('HistoryPelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/report_history.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>History Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconReportHistory}
-          onPress={() => navigation.navigate('HistoryPelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/report_history.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>History Relawan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconProfile}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict2.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconAddReport}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_report.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Buat Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconChangePass}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/change_pass.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Ubah Password</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconLogout}
-          onPress={() => navigation.navigate('SignIn')}>
-          <Image
-            source={require('../../../src/assets/images/logout.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.buttonIconMap}
+            onPress={() => navigation.navigate('MapScreen')}>
+            <Image
+              source={require('../../../src/assets/images/maps.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>Peta Bencana</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconReportHistory}
+            onPress={() => navigation.navigate('HistoryPelaporan')}>
+            <Image
+              source={require('../../../src/assets/images/report_history.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>History Pelaporan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconReportHistory}
+            onPress={() => navigation.navigate('HistoryPelaporan')}>
+            <Image
+              source={require('../../../src/assets/images/report_history.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>History Relawan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconProfile}
+            onPress={() => navigation.navigate('Profile')}>
+            <Image
+              source={require('../../../src/assets/images/profile_pict2.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconAddReport}
+            onPress={() => navigation.navigate('Pelaporan')}>
+            <Image
+              source={require('../../../src/assets/images/add_report.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>Buat Pelaporan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconChangePass}
+            onPress={() => navigation.navigate('Profile')}>
+            <Image
+              source={require('../../../src/assets/images/change_pass.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>Ubah Password</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonIconLogout}
+            onPress={() => navigation.navigate('SignIn')}>
+            <Image
+              source={require('../../../src/assets/images/logout.png')}
+              style={styles.imageButton}
+            />
+            <Text style={styles.menuItemText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
       <View style={styles.navbar}>
         <TouchableOpacity
           style={styles.navButton}
@@ -148,6 +135,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   header: {
     backgroundColor: '#007bff',
@@ -323,7 +313,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   navbar: {
-    marginTop: 35,
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 15,
