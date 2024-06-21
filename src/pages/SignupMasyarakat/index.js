@@ -14,29 +14,15 @@ import {Picker} from '@react-native-picker/picker';
 
 const SignUp = ({navigation}) => {
   const [selectedGender, setSelectedGender] = useState('');
-  const [nik, setNik] = useState('');
-  const [fullName, setfullName] = useState('');
-  const [genderrelawan, setGenderRelawan] = useState('');
-  const [dob, setDob] = useState('');
-  const [emailrelawan, setEmailrelawan] = useState('');
-  const [current_address, setCurrentAddress] = useState('');
-  const [whatsapp_number_relawan, setWhatsappNumbeRelawan] = useState('');
-  const [job, setJob] = useState('');
-  const [passwordrelawan, setPasswordRelawan] = useState('');
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [email, setEmail] = useState('');
+  const [whatsapp_number, setWhatsappNumber] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleCreateAccount = () => {
     // check if input fields are not empty or only spaces
-    if (
-      !nik.trim() ||
-      !fullName.trim() ||
-      !genderrelawan.trim() ||
-      !dob.trim() ||
-      !emailrelawan.trim() ||
-      !current_address.trim() ||
-      !whatsapp_number_relawan.trim() ||
-      !job.trim() ||
-      !passwordrelawan.trim()
-    ) {
+    if (!name || !gender || !email || !whatsapp_number || !password) {
       Alert.alert(
         'Empty Input Field',
         'Check again, all fields cannot be empty or contain only spaces.',
@@ -46,38 +32,38 @@ const SignUp = ({navigation}) => {
 
     // check if email format is valid
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailrelawan)) {
+    if (!emailRegex.test(email)) {
       Alert.alert('Error Message', 'Invalid email format.');
       return;
     }
 
-    if (passwordrelawan !== passwordrelawan) {
-      Alert.alert('Student Password', 'Please re-type the same password.');
-      return;
-    }
+    // if (passwordrelawan !== passwordrelawan) {
+    //   Alert.alert('Student Password', 'Please re-type the same password.');
+    //   return;
+    // }
 
-    if (password !== repassword) {
-      Alert.alert(
-        'Student Password',
-        'Passwords do not match. Please enter the same password in both fields.',
-      );
-      return;
-    }
+    // if (password !== repassword) {
+    //   Alert.alert(
+    //     'Student Password',
+    //     'Passwords do not match. Please enter the same password in both fields.',
+    //   );
+    //   return;
+    // }
 
-    if (password.length < 8 || repassword.length < 8) {
-      Alert.alert(
-        'Student Password',
-        'Password length must be at least 8 characters.',
-      );
-      return;
-    }
+    // if (password.length < 8 || repassword.length < 8) {
+    //   Alert.alert(
+    //     'Student Password',
+    //     'Password length must be at least 8 characters.',
+    //   );
+    //   return;
+    // }
 
     // create request body with email and password input values
     const requestBody = {
-      reg_number: regist,
-      nim_number: nim,
+      name: name,
+      gender: gender,
       email: email,
-      fullname: name,
+      whatsapp_number: whatsapp_number,
       password: password,
     };
 
@@ -89,7 +75,7 @@ const SignUp = ({navigation}) => {
     });
 
     Promise.race([
-      fetch('http://103.31.38.67/unkpresent/public/mobile/registration', {
+      fetch('https://silaben.site/app/public/login/regist_mobile_reguler', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -131,20 +117,16 @@ const SignUp = ({navigation}) => {
           return;
         }
 
-        if (textData.includes('SUCCESS')) {
+        if (textData.includes(textData)) {
           // message
-          Alert.alert(
-            'User Account',
-            'New account of the student was created successfully.',
-          );
+          Alert.alert('User Account', 'New account was created successfully.');
 
           // Set empty field
           setName('');
+          setGender('');
           setEmail('');
-          setRegist('');
-          setNim('');
+          setWhatsappNumber('');
           setPassword('');
-          setRePassword('');
         }
       })
       .catch(error => {
@@ -172,7 +154,15 @@ const SignUp = ({navigation}) => {
             source={require('../../assets/images/Username.png')}
             style={styles.inputIcon}
           />
-          <RNTextInput placeholder="Type your User Name" style={styles.input} />
+          <RNTextInput
+            placeholder="Type your User Name"
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoCompleteType="username"
+          />
         </View>
         <View style={styles.inputWrapper}>
           <Image
@@ -182,6 +172,11 @@ const SignUp = ({navigation}) => {
           <RNTextInput
             placeholder="Type your Email Address"
             style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoCompleteType="username"
           />
         </View>
         <View style={styles.inputWrapper}>
@@ -193,6 +188,11 @@ const SignUp = ({navigation}) => {
             placeholder="Type your Password"
             secureTextEntry
             style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoCompleteType="username"
           />
         </View>
         <View style={styles.pickerWrapper}>
@@ -201,9 +201,14 @@ const SignUp = ({navigation}) => {
             style={styles.pickerIcon}
           />
           <Picker
-            selectedValue={selectedGender}
-            onValueChange={itemValue => setSelectedGender(itemValue)}
-            style={styles.picker}>
+            selectedValue={gender}
+            onValueChange={itemValue => setGender(itemValue)}
+            style={styles.picker}
+            value={gender}
+            onChangeText={setGender}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoCompleteType="gender">
             <Picker.Item label="Select your gender" value="" />
             <Picker.Item label="Male" value="male" />
             <Picker.Item label="Female" value="female" />
@@ -217,11 +222,17 @@ const SignUp = ({navigation}) => {
           <RNTextInput
             placeholder="Type your Whatsapp Number"
             style={styles.input}
+            value={whatsapp_number}
+            onChangeText={setWhatsappNumber}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoCompleteType="whatsapp_number"
           />
         </View>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('SignIn')}>
+          // eslint-disable-next-line no-undef
+          onPress={handleCreateAccount}>
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       </View>
