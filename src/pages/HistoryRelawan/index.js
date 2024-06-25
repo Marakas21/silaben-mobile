@@ -14,7 +14,7 @@ const CashonDana = ({navigation}) => {
     <View style={styles.container}>
       <View>
         <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-          <Text style={styles.headerText}>Buat Pelaporan</Text>
+          <Text style={styles.headerText}>History Relawan</Text>
           <Image
             source={require('../../../src/assets/images/home_white.png')}
             style={styles.buttonIcon}
