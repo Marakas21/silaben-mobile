@@ -14,7 +14,18 @@ import Navbar from '../../components/Navbar';
 const CashonDigital = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <Header />
+      <View>
+        <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
       <View style={styles.reportCard}>
         <View style={styles.cardHeader}>
           <Text style={styles.reportTitle}>Pohon Tumbang</Text>
@@ -29,32 +40,7 @@ const CashonDigital = ({navigation}) => {
           style={styles.reportImage}
         />
       </View>
-      <View style={styles.navbar}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-      </View>
+      <Navbar />
     </View>
   );
 };
