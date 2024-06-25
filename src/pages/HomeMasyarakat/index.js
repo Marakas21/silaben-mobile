@@ -2,7 +2,11 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const HomeMasyarakat = ({navigation}) => {
+const HomeMasyarakat = ({navigation, route}) => {
+  // cara mendapatkan data dari paramenter
+  const {jsonData} = route.params;
+  console.log('Ini adalah Home screen relawan:');
+  console.log(jsonData);
   return (
     <View style={styles.container}>
       <View>
@@ -17,8 +21,8 @@ const HomeMasyarakat = ({navigation}) => {
             style={styles.userIcon}
           />
           <View>
-            <Text style={styles.userName}>Bob Marley</Text>
-            <Text style={styles.userStatus}>User</Text>
+            <Text style={styles.userName}>{jsonData.nama_relawan}</Text>
+            <Text style={styles.userStatus}>{jsonData.email}</Text>
           </View>
         </View>
       </View>
