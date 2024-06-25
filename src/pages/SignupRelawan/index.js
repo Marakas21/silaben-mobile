@@ -9,12 +9,13 @@ import {
   ScrollView,
   Platform,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker'; // Corrected import
 import {useNavigation} from '@react-navigation/native'; // Import useNavigation
 
-const CashonOvo = () => {
+const SignupRelawan = () => {
   const [show, setShow] = useState(false);
 
   const [nik, setNik] = useState('');
@@ -178,109 +179,132 @@ const CashonOvo = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.headerText}>Daftar Relawan</Text>
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Jenis Kelamin</Text>
-        <View style={styles.radioGroup}>
+      <ImageBackground
+        source={require('../../assets/images/bencana-splash.jpg')} // replace with your image path
+        style={styles.topImage}
+        imageStyle={styles.imageStyle}>
+        <View style={styles.overlay} />
+        <View style={styles.header}></View>
+      </ImageBackground>
+      <View style={styles.contentWrapper}>
+        <Text style={styles.signUpText}>Create an Account</Text>
+        <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={styles.radioButton}
-            onPress={() => setGenderRelawan('Laki-laki')}>
-            <View
-              style={
-                genderrelawan === 'Laki-laki'
-                  ? styles.radioSelected
-                  : styles.radioUnselected
-              }
-            />
-            <Text style={styles.radioText}>Laki-laki</Text>
+            style={styles.buttonOption}
+            onPress={() => navigation.navigate('SignupMasyarakat')}>
+            <Text style={styles.optionText}>Daftar Anggota Reguler</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.radioButton}
-            onPress={() => setGenderRelawan('Perempuan')}>
-            <View
-              style={
-                genderrelawan === 'Perempuan'
-                  ? styles.radioSelected
-                  : styles.radioUnselected
-              }
-            />
-            <Text style={styles.radioText}>Perempuan</Text>
+          <TouchableOpacity style={styles.buttonOptionActive}>
+            <Text style={styles.optionTextActive}>Daftar Relawan</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/address.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Alamat"
-          value={current_address}
-          onChangeText={text => setCurrentAddress(text)}
-        />
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/id-card.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="NIK (No.KTP)"
-          value={nik}
-          onChangeText={text => setNik(text)}
-        />
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/user.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Nama Lengkap"
-          value={full_name}
-          onChangeText={text => setFullName(text)}
-        />
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/calendar.png')}
-          style={styles.icon}
-        />
-        <TouchableOpacity
-          onPress={() => showMode('date')}
-          style={styles.datePickerButton}>
-          <Text style={styles.datePickerText}>
-            {dob ? dob.toLocaleDateString() : 'Tanggal Lahir'}
-          </Text>
-        </TouchableOpacity>
-        {show && (
-          <DateTimePicker
-            value={dob ? new Date(dob) : new Date()}
-            mode="date"
-            display="default"
-            onChange={onChange}
-            minimumDate={new Date(1900, 0, 1)}
-            maximumDate={new Date(2100, 11, 31)}
-            onChangeText={text => setDob(text)}
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Jenis Kelamin</Text>
+          <View style={styles.radioGroup}>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setGenderRelawan('Laki-laki')}>
+              <View
+                style={
+                  genderrelawan === 'Laki-laki'
+                    ? styles.radioSelected
+                    : styles.radioUnselected
+                }
+              />
+              <Text style={styles.radioText}>Laki-laki</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setGenderRelawan('Perempuan')}>
+              <View
+                style={
+                  genderrelawan === 'Perempuan'
+                    ? styles.radioSelected
+                    : styles.radioUnselected
+                }
+              />
+              <Text style={styles.radioText}>Perempuan</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/address.png')}
+            style={styles.icon}
           />
-        )}
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/email.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={emailrelawan}
-          onChangeText={text => setEmailrelawan(text)}
-        />
-      </View>
-      {/* <View style={styles.formGroup}>
+          <TextInput
+            style={styles.input}
+            placeholder="Alamat"
+            placeholderTextColor="#707070"
+            value={current_address}
+            onChangeText={text => setCurrentAddress(text)}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/id-card.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="NIK (No.KTP)"
+            placeholderTextColor="#707070"
+            value={nik}
+            onChangeText={text => setNik(text)}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/user.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Nama Lengkap"
+            placeholderTextColor="#707070"
+            value={full_name}
+            onChangeText={text => setFullName(text)}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/calendar.png')}
+            style={styles.icon}
+          />
+          <TouchableOpacity
+            onPress={() => showMode('date')}
+            style={styles.datePickerButton}>
+            <Text style={styles.datePickerText}>
+              {dob ? dob.toLocaleDateString() : 'Tanggal Lahir'}
+            </Text>
+          </TouchableOpacity>
+          {show && (
+            <DateTimePicker
+              value={dob ? new Date(dob) : new Date()}
+              mode="date"
+              display="default"
+              onChange={onChange}
+              minimumDate={new Date(1900, 0, 1)}
+              maximumDate={new Date(2100, 11, 31)}
+              onChangeText={text => setDob(text)}
+            />
+          )}
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/email.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#707070"
+            value={emailrelawan}
+            onChangeText={text => setEmailrelawan(text)}
+          />
+        </View>
+        {/* <View style={styles.formGroup}>
         <Image
           source={require('../../assets/images/address1.png')}
           style={styles.icon}
@@ -292,67 +316,203 @@ const CashonOvo = () => {
           onChangeText={text => setCurrentAddress(text)}
         />
       </View> */}
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/whatsapp.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Nomor Whatsapp aktif"
-          value={whatsapp_number_relawan}
-          onChangeText={text => setWhatsappNumbeRelawan(text)}
-        />
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/job.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Pekerjaan"
-          value={job}
-          onChangeText={text => setJob(text)}
-        />
-      </View>
-      <View style={styles.formGroup}>
-        <Image
-          source={require('../../assets/images/password.png')}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={passwordrelawan}
-          onChangeText={text => setPasswordRelawan(text)}
-          secureTextEntry
-        />
-      </View>
-      <TouchableOpacity
-        style={styles.submitButton}
-        onPress={handleCreateAccount} // Navigate on button press
-      >
-        <Text style={styles.submitButtonText}>Kirim</Text>
-      </TouchableOpacity>
-      <View>
-        <Image
-          source={require('../../assets/images/Down1.png')}
-          style={styles.downImage}
-        />
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/whatsapp.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Nomor Whatsapp aktif"
+            placeholderTextColor="#707070"
+            value={whatsapp_number_relawan}
+            onChangeText={text => setWhatsappNumbeRelawan(text)}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/job.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Pekerjaan"
+            placeholderTextColor="#707070"
+            value={job}
+            onChangeText={text => setJob(text)}
+          />
+        </View>
+        <View style={styles.formGroup}>
+          <Image
+            source={require('../../assets/images/password.png')}
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#707070"
+            value={passwordrelawan}
+            onChangeText={text => setPasswordRelawan(text)}
+            secureTextEntry
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleCreateAccount} // Navigate on button press
+        >
+          <Text style={styles.buttonText}>Kirim</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('SignIn')}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        {/* <View>
+          <Image
+            source={require('../../assets/images/Down1.png')}
+            style={styles.downImage}
+          />
+        </View> */}
       </View>
     </ScrollView>
   );
 };
 
-export default CashonOvo;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 35,
     backgroundColor: 'white',
   },
+  topImage: {
+    height: 102,
+    justifyContent: 'flex-end',
+  },
+  imageStyle: {
+    height: 260,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 51, 102, 0.3)', // Softer #003366 with 30% opacity
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerText: {
+    color: '#FFFFFF',
+    fontSize: 40,
+    fontWeight: 'bold',
+    height: 120,
+  },
+  contentWrapper: {
+    backgroundColor: 'white',
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    marginTop: -40,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+  },
+  signUpText: {
+    fontFamily: 'Poppins-BoldItalic',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#003366',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  buttonOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderRightWidth: 0,
+  },
+  buttonOptionActive: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    borderLeftWidth: 0,
+    backgroundColor: '#E0F0FF',
+  },
+  optionText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  optionTextActive: {
+    color: '#003366',
+    fontWeight: 'bold',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingLeft: 10, // Adjusted for icon spacing
+    marginBottom: 16,
+    padding: 6,
+  },
+  inputIcon: {
+    width: 25,
+    height: 25,
+    marginRight: 10,
+  },
+  // input: {
+  //   flex: 1,
+  //   height: 40,
+  //   color: '#707070',
+  // },
+  pickerWrapper: {
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingLeft: 10, // Adjusted for icon spacing
+  },
+  pickerIcon: {
+    width: 25,
+    height: 25,
+    marginRight: 10,
+  },
+  // picker: {
+  //   flex: 1,
+  //   height: 50,
+  // },
+  button: {
+    width: '90%',
+    height: 45,
+    backgroundColor: '#003366',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginHorizontal: 19,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  // eslint-disable-next-line no-dupe-keys
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -393,22 +553,27 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 16,
+    color: '#707070',
   },
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 4,
   },
+  // eslint-disable-next-line no-dupe-keys
   picker: {
     height: 50,
     width: '100%',
+    color: '#707070',
   },
+  // eslint-disable-next-line no-dupe-keys
   input: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 4,
     paddingLeft: 40, // Adjusted for icon spacing
+    color: '#707070',
   },
   icon: {
     position: 'absolute',
@@ -434,6 +599,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 4,
     alignItems: 'center',
+    height: 45,
+    marginTop: 20,
   },
   submitButtonText: {
     color: 'white',
@@ -447,3 +614,5 @@ const styles = StyleSheet.create({
     marginRight: -12,
   },
 });
+
+export default SignupRelawan;
