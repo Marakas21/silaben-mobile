@@ -8,8 +8,10 @@ import {
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Navbar from '../../components/Navbar';
+import HistoryPelaporan from '../HistoryPelaporan';
 
-const CashonDana = ({navigation}) => {
+const HistoryRelawan = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View>
@@ -43,34 +45,10 @@ const CashonDana = ({navigation}) => {
           style={styles.reportImage}
         />
       </View>
-      <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Maps')}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Home')}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Profile')}
-          />
-        </TouchableOpacity>
-      </View>
+      <Navbar />
     </View>
   );
 };
-
-export default CashonDana;
 
 const styles = StyleSheet.create({
   container: {
@@ -215,20 +193,6 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: 'white',
   },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-    marginTop: 170,
-  },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
-  },
 });
+
+export default HistoryRelawan;
