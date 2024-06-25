@@ -5,66 +5,25 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  PermissionsAndroid,
   Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {Picker} from '@react-native-picker/picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import Geolocation from '@react-native-community/geolocation';
+import MapView, {Marker} from 'react-native-maps';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
 
 const App = ({navigation}) => {
   const [description, setDescription] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState({latitude: 0, longitude: 0});
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [date, setDate] = useState('');
   const [disasterType, setDisasterType] = useState('');
-  const [locationText, setLocationText] = useState('Dapatkan Lokasi Anda');
-
-  const requestLocationPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message:
-            'This app needs access to your location to report a disaster.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Location permission granted');
-        getCurrentLocation();
-        setLocationText('Mengambil lokasi...');
-      } else {
-        console.log('Location permission denied');
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
-
-  const getCurrentLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setLocationText('Lokasi ditemukan');
-      },
-      error => {
-        console.log('Error getting location:', error);
-        setLocationText('Gagal mendapatkan lokasi');
-      },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-    );
-  };
+  const [locationText, setLocationText] = useState('Pilih Lokasi di Peta');
+  const [searchText, setSearchText] = useState('');
 
   const handleImagePicker = () => {
     const options = {
@@ -93,6 +52,55 @@ const App = ({navigation}) => {
     hideDatePicker();
   };
 
+  const handleMapPress = async event => {
+    const {latitude, longitude} = event.nativeEvent.coordinate;
+    setLocation({latitude, longitude});
+    updateLocationText(latitude, longitude);
+  };
+
+  const handleMarkerDragEnd = async event => {
+    const {latitude, longitude} = event.nativeEvent.coordinate;
+    setLocation({latitude, longitude});
+    updateLocationText(latitude, longitude);
+  };
+
+  const updateLocationText = async (latitude, longitude) => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+      );
+      const address = response.data.address;
+      const specificAddress = `${address.road}, ${address.house_number}, ${address.city}, ${address.state}, ${address.country}`;
+      setLocationText(specificAddress);
+    } catch (error) {
+      console.warn(error);
+      setLocationText(
+        `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
+      );
+    }
+  };
+
+  const searchLocation = async () => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${searchText}`,
+      );
+      if (response.data.length > 0) {
+        const {lat, lon, display_name} = response.data[0];
+        setLocation({
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lon),
+        });
+        setLocationText(display_name);
+      } else {
+        setLocationText('Lokasi tidak ditemukan');
+      }
+    } catch (error) {
+      console.warn(error);
+      setLocationText('Error mencari lokasi');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View>
@@ -109,20 +117,42 @@ const App = ({navigation}) => {
       </View>
 
       <View style={styles.inputContainer}>
-        <TextInput style={styles.input} placeholder="Judul Laporan" />
+        <TextInput
+          style={styles.input}
+          placeholder="Judul Laporan"
+          placeholderTextColor="#707070"
+        />
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={disasterType}
             onValueChange={itemValue => setDisasterType(itemValue)}
             style={styles.picker}>
-            <Picker.Item label="Pilih Jenis Bencana" value="" />
-            <Picker.Item label="Banjir" value="banjir" />
-            <Picker.Item label="Gempa Bumi" value="gempa" />
-            <Picker.Item label="Kebakaran" value="kebakaran" />
+            <Picker.Item
+              style={styles.inputText}
+              label="Pilih Jenis Bencana"
+              value=""
+            />
+            <Picker.Item
+              style={styles.inputText}
+              label="Banjir"
+              value="banjir"
+            />
+            <Picker.Item
+              style={styles.inputText}
+              label="Gempa Bumi"
+              value="gempa"
+            />
+            <Picker.Item
+              style={styles.inputText}
+              label="Kebakaran"
+              value="kebakaran"
+            />
           </Picker>
         </View>
         <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
-          <Text>{date ? date : 'Tanggal Kejadian Bencana'}</Text>
+          <Text style={styles.inputText}>
+            {date ? date : 'Tanggal Kejadian Bencana'}
+          </Text>
           <Image
             source={require('../../../src/assets/images/calendar.png')}
             style={styles.icon}
@@ -139,17 +169,45 @@ const App = ({navigation}) => {
           placeholder="Deskripsi bencana..."
           value={description}
           onChangeText={setDescription}
+          placeholderTextColor="#707070"
         />
+        <TextInput
+          style={styles.input}
+          placeholder="Cari Lokasi"
+          value={searchText}
+          onChangeText={setSearchText}
+          onSubmitEditing={searchLocation}
+          placeholderTextColor="#707070"
+        />
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            onPress={handleMapPress}
+            initialRegion={{
+              latitude: 1.4153965,
+              longitude: 124.9867153,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+            region={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}>
+            {location.latitude !== 0 && (
+              <Marker
+                coordinate={location}
+                draggable
+                onDragEnd={handleMarkerDragEnd}
+              />
+            )}
+          </MapView>
+        </View>
+        <View style={styles.locationTextContainer}>
+          <Text style={styles.locationText}>{locationText}</Text>
+        </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={requestLocationPermission}
-            style={styles.iconButton}>
-            <Text style={styles.buttonText}>{locationText}</Text>
-            <Image
-              source={require('../../../src/assets/images/location.png')}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleImagePicker}
             style={styles.iconButton}>
@@ -187,6 +245,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  inputText: {
+    color: '#707070',
+  },
+  locationTextContainer: {
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 13,
+    minHeight: 60, // Minimum height for the TextArea
+  },
+  locationText: {
+    color: '#707070',
+  },
   inputContainer: {
     backgroundColor: '#FFFFFF',
     padding: 20,
@@ -200,6 +272,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 13,
+    color: '#707070',
   },
   dateInput: {
     flexDirection: 'row',
@@ -219,6 +292,16 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
+  },
+  mapContainer: {
+    height: 200,
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
   },
   buttonContainer: {
     flexDirection: 'row',
