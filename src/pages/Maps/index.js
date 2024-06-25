@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import Navbar from '../../components/Navbar';
 
-const App = ({navigation}) => {
+const MapScreen = ({navigation}) => {
   const [selectedMarker, setSelectedMarker] = useState(null);
 
   const markers = [
@@ -72,29 +73,7 @@ const App = ({navigation}) => {
           style={styles.homeIcon}
         />
       </TouchableOpacity>
-      <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Maps')}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Home')}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-            onPress={() => navigation.navigate('Profile')}
-          />
-        </TouchableOpacity>
-      </View>
+      <Navbar />
     </View>
   );
 };
@@ -141,10 +120,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 8,
+    color: '#000000',
   },
   markerDescription: {
     fontSize: 14,
     marginTop: 4,
+    color: '#707070',
   },
   reportUser: {
     fontSize: 14,
@@ -167,21 +148,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-  },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
-  },
 });
 
-export default App;
+export default MapScreen;
