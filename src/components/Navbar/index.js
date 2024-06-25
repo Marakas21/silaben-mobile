@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#EEEEEE',
     backgroundColor: '#FFFFFF',
-    marginTop: 270,
   },
   navButton: {
     alignItems: 'center',
