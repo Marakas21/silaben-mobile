@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import Navbar from '../../components/Navbar';
 
-const App = ({navigation}) => {
+const Pelaporan = ({navigation}) => {
   const [description, setDescription] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [location, setLocation] = useState({latitude: 0, longitude: 0});
@@ -278,21 +278,57 @@ const App = ({navigation}) => {
           <View style={styles.locationTextContainer}>
             <Text style={styles.locationText}>{location.name}</Text>
           </View>
-          <View style={styles.locationTextContainer}>
-            <Text style={styles.locationText}>
-              Lat: {location.latitude.toFixed(4)}, Lng:{' '}
-              {location.longitude.toFixed(4)}
-            </Text>
+          <View style={styles.locationInputContainer}>
+            <View style={styles.inputLanLong}>
+              <Text style={styles.label}>Latitude:</Text>
+              <TextInput
+                style={styles.input}
+                value={location.latitude.toString()}
+                onChangeText={text =>
+                  setLocation({...location, latitude: parseFloat(text)})
+                }
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.inputLanLong}>
+              <Text style={styles.label}>Longitude:</Text>
+              <TextInput
+                style={styles.input}
+                value={location.longitude.toString()}
+                onChangeText={text =>
+                  setLocation({...location, longitude: parseFloat(text)})
+                }
+                keyboardType="numeric"
+              />
+            </View>
           </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              onPress={handleImagePicker}
-              style={styles.iconButton}>
-              <Image
-                source={require('../../../src/assets/images/image.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Upload Foto</Text>
+              style={styles.iconButton}
+              onPress={handleImagePicker}>
+              {selectedImage ? (
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text style={{fontSize: 14, color: '#333'}}>
+                    {selectedImage.substring(
+                      selectedImage.lastIndexOf('/') + 1,
+                    )}
+                  </Text>
+                  <TouchableOpacity onPress={() => setSelectedImage(null)}>
+                    {/* <Image
+                      source={require('../../../src/assets/images/image.png')}
+                      style={{width: 20, height: 20, marginLeft: 10}}
+                    /> */}
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Image
+                    source={require('../../../src/assets/images/image.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.buttonText}>Upload Foto</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
           <View style={styles.radioGroup}>
@@ -474,6 +510,20 @@ const styles = StyleSheet.create({
   radioText: {
     color: '#707070',
   },
+  locationInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+  },
+  inputLanLong: {
+    flex: 1,
+    marginRight: 10,
+  },
+  label: {
+    fontSize: 16,
+    color: '#333',
+  },
 });
 
-export default App;
+export default Pelaporan;
