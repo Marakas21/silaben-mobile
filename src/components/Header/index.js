@@ -6,7 +6,7 @@ const Header = ({navigation}) => {
   return (
     <View>
       <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-        <Text style={styles.headerText}>Buat Pelaporan</Text>
+        <Text style={styles.headerText}>History Pelaporan</Text>
         <TouchableOpacity onPress={() => navigation.navigate('HomeMasyarakat')}>
           <Image
             source={require('../../../src/assets/images/home_white.png')}
