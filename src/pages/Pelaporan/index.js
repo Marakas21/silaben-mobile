@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -14,6 +15,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import MapView, {Marker} from 'react-native-maps';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
+import Navbar from '../../components/Navbar';
 
 const App = ({navigation}) => {
   const [description, setDescription] = useState('');
@@ -24,6 +26,9 @@ const App = ({navigation}) => {
   const [disasterType, setDisasterType] = useState('');
   const [locationText, setLocationText] = useState('Pilih Lokasi di Peta');
   const [searchText, setSearchText] = useState('');
+  const [anonim, setAnonim] = useState('');
+
+  const mapRef = useRef(null);
 
   const handleImagePicker = () => {
     const options = {
@@ -54,14 +59,23 @@ const App = ({navigation}) => {
 
   const handleMapPress = async event => {
     const {latitude, longitude} = event.nativeEvent.coordinate;
-    setLocation({latitude, longitude});
+    setLocation({...location, latitude, longitude});
     updateLocationText(latitude, longitude);
   };
 
   const handleMarkerDragEnd = async event => {
     const {latitude, longitude} = event.nativeEvent.coordinate;
-    setLocation({latitude, longitude});
+    setLocation({...location, latitude, longitude});
     updateLocationText(latitude, longitude);
+    mapRef.animateToRegion(
+      {
+        latitude,
+        longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      },
+      500,
+    );
   };
 
   const updateLocationText = async (latitude, longitude) => {
@@ -71,157 +85,248 @@ const App = ({navigation}) => {
       );
       const address = response.data.address;
       const specificAddress = `${address.road}, ${address.house_number}, ${address.city}, ${address.state}, ${address.country}`;
-      setLocationText(specificAddress);
+      setLocation({
+        ...location,
+        name: specificAddress,
+        road: address.road,
+        house_number: address.house_number,
+        city: address.city,
+        state: address.state,
+        country: address.country,
+        latitude,
+        longitude,
+      });
     } catch (error) {
       console.warn(error);
-      setLocationText(
-        `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
-      );
+      setLocation({
+        ...location,
+        name: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
+        latitude,
+        longitude,
+      });
     }
   };
 
   const searchLocation = async () => {
     try {
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${searchText}`,
+        `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${searchText}`,
       );
       if (response.data.length > 0) {
         const {lat, lon, display_name} = response.data[0];
         setLocation({
+          ...location,
           latitude: parseFloat(lat),
           longitude: parseFloat(lon),
+          name: display_name,
         });
-        setLocationText(display_name);
       } else {
-        setLocationText('Lokasi tidak ditemukan');
+        setLocation({
+          ...location,
+          name: 'Lokasi tidak ditemukan',
+        });
       }
     } catch (error) {
       console.warn(error);
-      setLocationText('Error mencari lokasi');
+      setLocation({
+        ...location,
+        name: 'Error mencari lokasi',
+      });
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-          <Text style={styles.headerText}>Buat Pelaporan</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HomeMasyarakat')}>
-            <Image
-              source={require('../../../src/assets/images/home_white.png')}
-              style={styles.buttonIcon}
-            />
-          </TouchableOpacity>
-        </LinearGradient>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Judul Laporan"
-          placeholderTextColor="#707070"
-        />
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={disasterType}
-            onValueChange={itemValue => setDisasterType(itemValue)}
-            style={styles.picker}>
-            <Picker.Item
-              style={styles.inputText}
-              label="Pilih Jenis Bencana"
-              value=""
-            />
-            <Picker.Item
-              style={styles.inputText}
-              label="Banjir"
-              value="banjir"
-            />
-            <Picker.Item
-              style={styles.inputText}
-              label="Gempa Bumi"
-              value="gempa"
-            />
-            <Picker.Item
-              style={styles.inputText}
-              label="Kebakaran"
-              value="kebakaran"
-            />
-          </Picker>
-        </View>
-        <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
-          <Text style={styles.inputText}>
-            {date ? date : 'Tanggal Kejadian Bencana'}
-          </Text>
-          <Image
-            source={require('../../../src/assets/images/calendar.png')}
-            style={styles.icon}
-          />
-        </TouchableOpacity>
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Deskripsi bencana..."
-          value={description}
-          onChangeText={setDescription}
-          placeholderTextColor="#707070"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Cari Lokasi"
-          value={searchText}
-          onChangeText={setSearchText}
-          onSubmitEditing={searchLocation}
-          placeholderTextColor="#707070"
-        />
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            onPress={handleMapPress}
-            initialRegion={{
-              latitude: 1.4153965,
-              longitude: 124.9867153,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            region={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}>
-            {location.latitude !== 0 && (
-              <Marker
-                coordinate={location}
-                draggable
-                onDragEnd={handleMarkerDragEnd}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View>
+          <LinearGradient colors={['#0D85FE', '#003366']} style={styles.header}>
+            <Text style={styles.headerText}>Buat Pelaporan</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('HomeMasyarakat')}>
+              <Image
+                source={require('../../../src/assets/images/home_white.png')}
+                style={styles.buttonIcon}
               />
-            )}
-          </MapView>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
-        <View style={styles.locationTextContainer}>
-          <Text style={styles.locationText}>{locationText}</Text>
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={handleImagePicker}
-            style={styles.iconButton}>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Judul Laporan"
+            placeholderTextColor="#707070"
+          />
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={disasterType}
+              onValueChange={itemValue => setDisasterType(itemValue)}
+              style={styles.picker}>
+              <Picker.Item
+                style={styles.inputText}
+                label="Klasifikasi Laporan Bencana"
+                value=""
+              />
+              <Picker.Item style={styles.inputText} label="Alam" value="Alam" />
+              <Picker.Item
+                style={styles.inputText}
+                label="Non Alam"
+                value="Non Alam"
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Sosial"
+                value="Sosial"
+              />
+            </Picker>
+          </View>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={disasterType}
+              onValueChange={itemValue => setDisasterType(itemValue)}
+              style={styles.picker}>
+              <Picker.Item
+                style={styles.inputText}
+                label="Segera Lapor ke Instansi Terkait"
+                value=""
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Kepolisian"
+                value="Kepolisian"
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Rumah Sakit"
+                value="Rumah Sakit"
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Kelurahan"
+                value="Kelurahan"
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Tidak Mendesak"
+                value="Tidak Mendesak"
+              />
+              <Picker.Item
+                style={styles.inputText}
+                label="Lainnya"
+                value="Lainnya"
+              />
+            </Picker>
+          </View>
+          <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
+            <Text style={styles.inputText}>
+              {date ? date : 'Tanggal Kejadian Bencana'}
+            </Text>
             <Image
-              source={require('../../../src/assets/images/image.png')}
+              source={require('../../../src/assets/images/calendar.png')}
               style={styles.icon}
             />
-            <Text style={styles.buttonText}>Upload Foto</Text>
+          </TouchableOpacity>
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Deskripsi bencana..."
+            value={description}
+            onChangeText={setDescription}
+            placeholderTextColor="#707070"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Cari Lokasi"
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={searchLocation}
+            placeholderTextColor="#707070"
+          />
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              onPress={handleMapPress}
+              initialRegion={{
+                latitude: 1.4153965,
+                longitude: 124.9867153,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+              region={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}>
+              {location.latitude !== 0 && (
+                <Marker
+                  coordinate={{
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  }}
+                  draggable
+                  onDragEnd={handleMarkerDragEnd}
+                />
+              )}
+            </MapView>
+          </View>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationText}>{location.name}</Text>
+          </View>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationText}>
+              Lat: {location.latitude.toFixed(4)}, Lng:{' '}
+              {location.longitude.toFixed(4)}
+            </Text>
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={handleImagePicker}
+              style={styles.iconButton}>
+              <Image
+                source={require('../../../src/assets/images/image.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Upload Foto</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.radioGroup}>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setAnonim('Anonim')}>
+              <View
+                style={
+                  anonim === 'Anonim'
+                    ? styles.radioSelected
+                    : styles.radioUnselected
+                }
+              />
+              <Text style={styles.radioText}>Anonim</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setAnonim('Tidak Anonim')}>
+              <View
+                style={
+                  anonim === 'Tidak Anonim'
+                    ? styles.radioSelected
+                    : styles.radioUnselected
+                }
+              />
+              <Text style={styles.radioText}>Tidak Anonim</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>Kirim</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Kirim</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
+      <Navbar />
     </SafeAreaView>
   );
 };
@@ -235,8 +340,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#003366',
     padding: 30,
     alignItems: 'center',
-    borderBottomRightRadius: 5,
-    borderBottomLeftRadius: 5,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -244,6 +347,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   inputText: {
     color: '#707070',
@@ -339,6 +445,34 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    marginTop: 15,
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioSelected: {
+    height: 16,
+    width: 16,
+    borderRadius: 8,
+    backgroundColor: '#003366',
+    marginRight: 10,
+  },
+  radioUnselected: {
+    height: 16,
+    width: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#003366',
+    marginRight: 10,
+  },
+  radioText: {
+    color: '#707070',
   },
 });
 
