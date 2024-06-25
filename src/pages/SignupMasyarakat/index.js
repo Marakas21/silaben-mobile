@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 
-const SignUp = ({navigation}) => {
+const SignupMasyarakat = ({navigation}) => {
   const [selectedGender, setSelectedGender] = useState('');
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
@@ -150,6 +150,16 @@ const SignUp = ({navigation}) => {
       </ImageBackground>
       <View style={styles.contentWrapper}>
         <Text style={styles.signUpText}>Create an Account</Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.buttonOptionActive}>
+            <Text style={styles.optionText}>Daftar Anggota Reguler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonOption}
+            onPress={() => navigation.navigate('SignupRelawan')}>
+            <Text style={styles.optionTextActive}>Daftar Relawan</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.inputWrapper}>
           <Image
             source={require('../../assets/images/Username.png')}
@@ -157,6 +167,7 @@ const SignUp = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your User Name"
+            placeholderTextColor="#707070"
             style={styles.input}
             value={name}
             onChangeText={setName}
@@ -172,6 +183,7 @@ const SignUp = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your Email Address"
+            placeholderTextColor="#707070"
             style={styles.input}
             value={email}
             onChangeText={setEmail}
@@ -187,6 +199,7 @@ const SignUp = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your Password"
+            placeholderTextColor="#707070"
             secureTextEntry
             style={styles.input}
             value={password}
@@ -222,6 +235,7 @@ const SignUp = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your Whatsapp Number"
+            placeholderTextColor="#707070"
             style={styles.input}
             value={whatsapp_number}
             onChangeText={setWhatsappNumber}
@@ -236,12 +250,15 @@ const SignUp = ({navigation}) => {
           onPress={handleCreateAccount}>
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('SignIn')}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 };
-
-export default SignUp;
 
 const styles = StyleSheet.create({
   container: {
@@ -290,6 +307,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  buttonOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+    borderRightWidth: 0,
+  },
+  buttonOptionActive: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    borderLeftWidth: 0,
+    backgroundColor: '#E0F0FF',
+  },
+  optionText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  optionTextActive: {
+    color: '#003366',
+    fontWeight: 'bold',
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -308,6 +359,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 40,
+    color: '#707070',
   },
   pickerWrapper: {
     marginBottom: 16,
@@ -326,6 +378,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     height: 50,
+    color: '#707070',
   },
   button: {
     width: '90%',
@@ -343,3 +396,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default SignupMasyarakat;
