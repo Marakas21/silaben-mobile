@@ -74,9 +74,12 @@ const SignIn = ({navigation}) => {
           return;
         }
 
-        if (textData.includes(textData)) {
+        if (role === 'relawan') {
           Alert.alert('Login Success', 'Welcome to Silaben.');
           navigation.navigate('HomeRelawan', {jsonData});
+        } else if (role === 'user') {
+          Alert.alert('Login Success', 'Welcome to Silaben.');
+          navigation.navigate('HomeMasyarakat', {jsonData});
         }
       })
       .catch(error => {
@@ -121,6 +124,7 @@ const SignIn = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your User Name"
+            placeholderTextColor="#707070"
             style={styles.input}
             value={name}
             onChangeText={setName}
@@ -136,6 +140,7 @@ const SignIn = ({navigation}) => {
           />
           <RNTextInput
             placeholder="Type your Password"
+            placeholderTextColor="#707070"
             style={styles.input}
             value={password}
             onChangeText={setPassword}
