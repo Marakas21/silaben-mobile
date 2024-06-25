@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Navbar from '../../components/Navbar';
 
 const HomeRelawan = ({navigation, route}) => {
   // cara mendapatkan data dari paramenter
@@ -101,32 +102,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <View style={styles.navbar}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-      </View>
+      <Navbar />
     </View>
   );
 };
@@ -311,21 +287,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-  },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
+    color: '#707070',
+    textAlign: 'center',
   },
 });
 
