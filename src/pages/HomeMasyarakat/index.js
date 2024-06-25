@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Navbar from '../../components/Navbar';
 
 const HomeMasyarakat = ({navigation, route}) => {
   // cara mendapatkan data dari paramenter
@@ -21,7 +22,7 @@ const HomeMasyarakat = ({navigation, route}) => {
             style={styles.userIcon}
           />
           <View>
-            <Text style={styles.userName}>{jsonData.nama_relawan}</Text>
+            <Text style={styles.userName}>{jsonData.user_name}</Text>
             <Text style={styles.userStatus}>{jsonData.email}</Text>
           </View>
         </View>
@@ -109,32 +110,7 @@ const HomeMasyarakat = ({navigation, route}) => {
           <Text style={styles.menuItemText}>Logout</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.navbar}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-      </View>
+      <Navbar />
     </View>
   );
 };
@@ -316,22 +292,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  navbar: {
-    marginTop: 35,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-  },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
+    color: '#003366',
+    textAlign: 'center',
   },
 });
 
