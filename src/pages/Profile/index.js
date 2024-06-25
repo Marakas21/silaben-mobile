@@ -1,5 +1,5 @@
 // ProfileScreen.js
-import React from 'react';
+import React, {Component} from 'react';
 import {
   View,
   Text,
@@ -11,43 +11,68 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const ProfileScreen = ({navigation}) => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-        <View style={styles.profileIconContainer}>
-          <View style={styles.profileIcon}>
-            <Image
-              source={require('../../../src/assets/images/profile_pict.png')}
-              style={styles.profileImage}
-            />
+class ProfileScreen extends Component {
+  constructor(props) {
+    super(props);
+
+    // cara mendapatkan data dari paramenter
+    const {jsonData} = this.props.route.params;
+    //console.log("Test ClassScreen");
+    //console.log(jsonData);
+
+    // Menyimpan data di dalam state
+    this.state = {
+      jsonData: jsonData,
+    };
+
+    //console.log("email: "+jsonData[0].email);
+  }
+  renderContent() {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
+          <View style={styles.profileIconContainer}>
+            <View style={styles.profileIcon}>
+              <Image
+                source={require('../../../src/assets/images/profile_pict.png')}
+                style={styles.profileImage}
+              />
+            </View>
           </View>
+        </LinearGradient>
+        <Text style={styles.title}>{jsonData.nama_relawan}</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputTitle}>Username</Text>
+          <TextInput
+            style={styles.input}
+            value={jsonData.nama_relawan}
+            editable={false}
+          />
+          <Text style={styles.inputTitle}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={jsonData.nama_relawan}
+            editable={false}
+          />
+          <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
+          <TextInput
+            style={styles.input}
+            value={jsonData.nama_relawan}
+            editable={false}
+          />
         </View>
-      </LinearGradient>
-      <Text style={styles.title}>Polisi</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputTitle}>Username</Text>
-        <TextInput style={styles.input} value="Bob Marley" editable={false} />
-        <Text style={styles.inputTitle}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value="bobmarley@gmail.com"
-          editable={false}
-        />
-        <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
-        <TextInput style={styles.input} value="0812334566" editable={false} />
-      </View>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Change Password</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.homeButton}
-        onPress={() => navigation.navigate('HomeMasyarakat')}>
-        <Text style={styles.homeButtonText}>Home</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
-  );
-};
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Change Password</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => navigation.navigate('HomeMasyarakat')}>
+          <Text style={styles.homeButtonText}>Home</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
