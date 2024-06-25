@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-const HomeMasyarakat = ({navigation, route}) => {
+const HomeRelawan = ({navigation, route}) => {
   // cara mendapatkan data dari paramenter
   const {jsonData} = route.params;
   console.log('Ini adalah Home screen relawan:');
@@ -329,4 +329,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeMasyarakat;
+export default HomeRelawan;
