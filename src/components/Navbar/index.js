@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navIcon: {
-    width: 30,
+    width: 35,
     height: 30,
   },
 });
