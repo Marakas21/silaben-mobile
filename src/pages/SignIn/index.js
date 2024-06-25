@@ -113,7 +113,8 @@ const SignIn = ({navigation}) => {
             onValueChange={itemValue => setRole(itemValue)}
             style={styles.picker}>
             <Picker.Item label="Select your Role" value="" />
-            <Picker.Item label="Anggota Reguler" value="Anggota Reguler" />
+            <Picker.Item label="user" value="user" />
+            <Picker.Item label="admin" value="admin" />
             <Picker.Item label="relawan" value="relawan" />
           </Picker>
         </View>
@@ -234,6 +235,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     height: 50,
+    color: '#707070',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -249,11 +251,13 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     marginRight: 10,
+    color: '#707070',
   },
   input: {
     flex: 1,
     height: 40,
     marginLeft: 12,
+    color: '#707070',
   },
   button: {
     width: '90%',
