@@ -11,7 +11,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Header from '../../components/Header';
 import Navbar from '../../components/Navbar';
 
-const CashonDigital = ({navigation}) => {
+const HistoryPelaporan = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View>
@@ -44,8 +44,6 @@ const CashonDigital = ({navigation}) => {
     </View>
   );
 };
-
-export default CashonDigital;
 
 const styles = StyleSheet.create({
   container: {
@@ -167,20 +165,6 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: 'white',
   },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
-    marginTop: 270,
-  },
-  navButton: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    width: 30,
-    height: 30,
-  },
 });
+
+export default HistoryPelaporan;
