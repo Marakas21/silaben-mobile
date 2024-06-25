@@ -146,6 +146,7 @@ const CashonOvo = () => {
         if (textData.includes(textData)) {
           // message
           Alert.alert('User Account', 'New account was created successfully.');
+          navigation.navigate('SignIn');
 
           // Set empty field
           setNik('');
