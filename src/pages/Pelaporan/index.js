@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -16,6 +18,7 @@ import MapView, {Marker} from 'react-native-maps';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import Navbar from '../../components/Navbar';
+import Geolocation from 'react-native-geolocation-service';
 
 const Pelaporan = ({navigation}) => {
   const [description, setDescription] = useState('');
@@ -23,12 +26,55 @@ const Pelaporan = ({navigation}) => {
   const [location, setLocation] = useState({latitude: 0, longitude: 0});
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [disasterType, setDisasterType] = useState('');
   const [locationText, setLocationText] = useState('Pilih Lokasi di Peta');
   const [searchText, setSearchText] = useState('');
   const [anonim, setAnonim] = useState('');
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
   const mapRef = useRef(null);
+
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Izin Lokasi',
+            message: 'Aplikasi ini membutuhkan akses lokasi Anda.',
+            buttonNeutral: 'Nanti',
+            buttonNegative: 'Batal',
+            buttonPositive: 'Izinkan',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          getCurrentLocation();
+        } else {
+          console.log('Location permission denied');
+        }
+      } else {
+        getCurrentLocation();
+      }
+    };
+
+    requestLocationPermission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const {latitude, longitude} = position.coords;
+        setLocation({latitude, longitude});
+        updateLocationText(latitude, longitude);
+      },
+      error => {
+        console.log(error.code, error.message);
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    );
+  };
 
   const handleImagePicker = () => {
     const options = {
@@ -84,26 +130,13 @@ const Pelaporan = ({navigation}) => {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
       );
       const address = response.data.address;
-      const specificAddress = `${address.road}, ${address.house_number}, ${address.city}, ${address.state}, ${address.country}`;
-      setLocation({
-        ...location,
-        name: specificAddress,
-        road: address.road,
-        house_number: address.house_number,
-        city: address.city,
-        state: address.state,
-        country: address.country,
-        latitude,
-        longitude,
-      });
+      const addressText = `${address.road}, ${address.city}, ${address.state}, ${address.country}`;
+      setLocationText(addressText);
     } catch (error) {
       console.warn(error);
-      setLocation({
-        ...location,
-        name: `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
-        latitude,
-        longitude,
-      });
+      setLocationText(
+        `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`,
+      );
     }
   };
 
@@ -118,21 +151,28 @@ const Pelaporan = ({navigation}) => {
           ...location,
           latitude: parseFloat(lat),
           longitude: parseFloat(lon),
-          name: display_name,
         });
+        setLocationText(display_name);
       } else {
-        setLocation({
-          ...location,
-          name: 'Lokasi tidak ditemukan',
-        });
+        setLocationText('Lokasi tidak ditemukan');
       }
     } catch (error) {
       console.warn(error);
-      setLocation({
-        ...location,
-        name: 'Error mencari lokasi',
-      });
+      setLocationText('Error mencari lokasi');
     }
+  };
+
+  const showTimePicker = () => {
+    setTimePickerVisibility(true); // Show time picker modal
+  };
+
+  const hideTimePicker = () => {
+    setTimePickerVisibility(false); // Hide time picker modal
+  };
+
+  const handleConfirmTime = selectedTime => {
+    setTime(selectedTime.toLocaleTimeString()); // Handle time selection and format it
+    hideTimePicker();
   };
 
   return (
@@ -226,6 +266,21 @@ const Pelaporan = ({navigation}) => {
               style={styles.icon}
             />
           </TouchableOpacity>
+          <TouchableOpacity onPress={showTimePicker} style={styles.dateInput}>
+            <Text style={styles.inputText}>
+              {time ? time : 'Waktu Kejadian Bencana'}
+            </Text>
+            <Image
+              source={require('../../../src/assets/images/clock.png')}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
+          <DateTimePickerModal
+            isVisible={isTimePickerVisible}
+            mode="time"
+            onConfirm={handleConfirmTime}
+            onCancel={hideTimePicker}
+          />
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
@@ -275,94 +330,42 @@ const Pelaporan = ({navigation}) => {
               )}
             </MapView>
           </View>
-          <View style={styles.locationTextContainer}>
-            <Text style={styles.locationText}>{location.name}</Text>
-          </View>
-          <View style={styles.locationInputContainer}>
-            <View style={styles.inputLanLong}>
-              <Text style={styles.label}>Latitude:</Text>
-              <TextInput
-                style={styles.input}
-                value={location.latitude.toString()}
-                onChangeText={text =>
-                  setLocation({...location, latitude: parseFloat(text)})
-                }
-                keyboardType="numeric"
+          <TextInput
+            style={styles.input}
+            placeholder={locationText}
+            placeholderTextColor="#707070"
+          />
+          <TouchableOpacity
+            onPress={handleImagePicker}
+            style={styles.imageInput}>
+            <Text style={styles.inputText}>Unggah Gambar</Text>
+            {selectedImage && (
+              <Image
+                source={{uri: selectedImage}}
+                style={styles.imagePreview}
               />
-            </View>
-            <View style={styles.inputLanLong}>
-              <Text style={styles.label}>Longitude:</Text>
-              <TextInput
-                style={styles.input}
-                value={location.longitude.toString()}
-                onChangeText={text =>
-                  setLocation({...location, longitude: parseFloat(text)})
-                }
-                keyboardType="numeric"
-              />
-            </View>
+            )}
+          </TouchableOpacity>
+          <View style={styles.switchContainer}>
+            <Text style={styles.switchLabel}>Laporkan sebagai anonim</Text>
+            <Picker
+              selectedValue={anonim}
+              onValueChange={value => setAnonim(value)}
+              style={styles.picker}>
+              <Picker.Item label="Tidak" value="Tidak" />
+              <Picker.Item label="Ya" value="Ya" />
+            </Picker>
           </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleImagePicker}>
-              {selectedImage ? (
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Text style={{fontSize: 14, color: '#333'}}>
-                    {selectedImage.substring(
-                      selectedImage.lastIndexOf('/') + 1,
-                    )}
-                  </Text>
-                  <TouchableOpacity onPress={() => setSelectedImage(null)}>
-                    {/* <Image
-                      source={require('../../../src/assets/images/image.png')}
-                      style={{width: 20, height: 20, marginLeft: 10}}
-                    /> */}
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Image
-                    source={require('../../../src/assets/images/image.png')}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.buttonText}>Upload Foto</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.radioGroup}>
-            <TouchableOpacity
-              style={styles.radioButton}
-              onPress={() => setAnonim('Anonim')}>
-              <View
-                style={
-                  anonim === 'Anonim'
-                    ? styles.radioSelected
-                    : styles.radioUnselected
-                }
-              />
-              <Text style={styles.radioText}>Anonim</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.radioButton}
-              onPress={() => setAnonim('Tidak Anonim')}>
-              <View
-                style={
-                  anonim === 'Tidak Anonim'
-                    ? styles.radioSelected
-                    : styles.radioUnselected
-                }
-              />
-              <Text style={styles.radioText}>Tidak Anonim</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Kirim</Text>
+          <TouchableOpacity style={styles.button}>
+            <LinearGradient
+              colors={['#0D85FE', '#0000FF']}
+              style={styles.buttonBackground}>
+              <Text style={styles.buttonText}>Laporkan</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <Navbar />
+      <Navbar navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -370,64 +373,39 @@ const Pelaporan = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  header: {
-    backgroundColor: '#003366',
-    padding: 30,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  headerText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    backgroundColor: '#fff',
   },
   scrollContainer: {
     flexGrow: 1,
   },
-  inputText: {
-    color: '#707070',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
-  locationTextContainer: {
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 13,
-    minHeight: 60, // Minimum height for the TextArea
+  headerText: {
+    color: '#fff',
+    fontSize: 18,
   },
-  locationText: {
-    color: '#707070',
+  buttonIcon: {
+    width: 24,
+    height: 24,
   },
   inputContainer: {
-    backgroundColor: '#FFFFFF',
     padding: 20,
-    margin: 20,
-    borderRadius: 10,
-    marginTop: 30,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 13,
-    color: '#707070',
-  },
-  dateInput: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    padding: 10,
-    borderRadius: 5,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 8,
+    paddingHorizontal: 5,
     marginBottom: 15,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#CCCCCC',
+    borderColor: '#ccc',
     borderRadius: 5,
     marginBottom: 15,
   },
@@ -435,94 +413,64 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
   },
+  inputText: {
+    color: '#000',
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 15,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    marginLeft: 10,
+  },
   mapContainer: {
     height: 200,
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderRadius: 5,
     marginBottom: 15,
   },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
-  buttonContainer: {
+  imageInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    marginTop: 10,
+  },
+  switchContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 15,
-    marginTop: 5,
   },
-  iconButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EEEEEE',
-    padding: 10,
+  switchLabel: {
+    color: '#000',
+    fontSize: 16,
+  },
+  button: {
+    marginTop: 20,
+  },
+  buttonBackground: {
+    padding: 15,
     borderRadius: 5,
-    flex: 1,
-    marginHorizontal: 5,
+    alignItems: 'center',
   },
   buttonText: {
-    fontSize: 14,
-    color: '#333333',
-  },
-  submitButton: {
-    backgroundColor: '#003366',
-    padding: 15,
-    alignItems: 'center',
-    borderRadius: 5,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: 16,
-  },
-  buttonIcon: {
-    width: 24,
-    height: 24,
-  },
-  icon: {
-    width: 20,
-    height: 20,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    marginTop: 15,
-  },
-  radioButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  radioSelected: {
-    height: 16,
-    width: 16,
-    borderRadius: 8,
-    backgroundColor: '#003366',
-    marginRight: 10,
-  },
-  radioUnselected: {
-    height: 16,
-    width: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#003366',
-    marginRight: 10,
-  },
-  radioText: {
-    color: '#707070',
-  },
-  locationInputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-  },
-  inputLanLong: {
-    flex: 1,
-    marginRight: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: '#333',
   },
 });
 
