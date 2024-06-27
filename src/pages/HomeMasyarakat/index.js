@@ -1,13 +1,48 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeMasyarakat = ({navigation, route}) => {
-  // cara mendapatkan data dari paramenter
-  const {jsonData} = route.params;
-  console.log('Ini adalah Home screen relawan:');
-  console.log(jsonData);
+  // Mengambil data dari parameter atau default menjadi objek kosong
+  const {jsonData = {}} = route.params || {};
+  console.log('Ini json data:', jsonData);
+
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use:', dataToUse);
+
   return (
     <View style={styles.container}>
       <View>
@@ -22,38 +57,11 @@ const HomeMasyarakat = ({navigation, route}) => {
             style={styles.userIcon}
           />
           <View>
-            <Text style={styles.userName}>{jsonData.user_name}</Text>
-            <Text style={styles.userStatus}>{jsonData.email}</Text>
+            <Text style={styles.userName}>{dataToUse.user_name}</Text>
+            <Text style={styles.userStatus}>{dataToUse.email}</Text>
           </View>
         </View>
       </View>
-      {/* <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/map.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>Peta Bencana</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
-          <Image
-            source={require('../../../src/assets/images/report_history.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>History Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Pelaporan')}>
-          <Image
-            source={require('../../../src/assets/images/add_new_report.png')}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.buttonText}>Buat Pelaporan</Text>
-        </TouchableOpacity>
-      </View> */}
       <View style={styles.menuContainer}>
         <TouchableOpacity
           style={styles.buttonIconMap}
@@ -66,7 +74,7 @@ const HomeMasyarakat = ({navigation, route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonIconReportHistory}
-          onPress={() => navigation.navigate('HistoryPelaporan')}>
+          onPress={() => navigation.navigate('HistoryPelaporan', {jsonData})}>
           <Image
             source={require('../../../src/assets/images/report_history.png')}
             style={styles.imageButton}
@@ -75,7 +83,7 @@ const HomeMasyarakat = ({navigation, route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonIconProfile}
-          onPress={() => navigation.navigate('Profile')}>
+          onPress={() => navigation.navigate('Profile', {jsonData})}>
           <Image
             source={require('../../../src/assets/images/profile_pict2.png')}
             style={styles.imageButton}
@@ -84,7 +92,7 @@ const HomeMasyarakat = ({navigation, route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonIconAddReport}
-          onPress={() => navigation.navigate('Pelaporan')}>
+          onPress={() => navigation.navigate('Pelaporan', {jsonData})}>
           <Image
             source={require('../../../src/assets/images/add_report.png')}
             style={styles.imageButton}
@@ -93,7 +101,7 @@ const HomeMasyarakat = ({navigation, route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonIconChangePass}
-          onPress={() => navigation.navigate('Profile')}>
+          onPress={() => navigation.navigate('Profile', {jsonData})}>
           <Image
             source={require('../../../src/assets/images/change_pass.png')}
             style={styles.imageButton}
@@ -276,23 +284,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  menuItem: {
-    width: '40%',
-    margin: 10,
-    padding: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-  },
   menuItemText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 12,
+    marginTop: 5,
     color: '#003366',
+    fontWeight: 'bold',
     textAlign: 'center',
   },
 });
