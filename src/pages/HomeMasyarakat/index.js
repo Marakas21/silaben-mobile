@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,6 +49,24 @@ const HomeMasyarakat = ({navigation, route}) => {
 
   const dataToUse = storedData || jsonData;
   console.log('Ini data to use:', dataToUse);
+
+  const handleButtonPress = () => {
+    Alert.alert(
+      'Confirm Dialog',
+      'Are you sure want to exit?',
+      [
+        {text: 'No', style: 'cancel'},
+        {
+          text: 'Yes',
+          onPress: () => {
+            console.log('Keluar Dilanjutkan dari HomeScreen.');
+            navigation.navigate('SignIn');
+          },
+        },
+      ],
+      {cancelable: false},
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -110,7 +135,7 @@ const HomeMasyarakat = ({navigation, route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonIconLogout}
-          onPress={() => navigation.navigate('SignIn')}>
+          onPress={handleButtonPress}>
           <Image
             source={require('../../../src/assets/images/logout.png')}
             style={styles.imageButton}
