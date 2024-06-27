@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,46 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeRelawan = ({navigation, route}) => {
-  // cara mendapatkan data dari paramenter
-  const {jsonData} = route.params;
-  console.log('Ini adalah Home screen relawan:');
-  console.log(jsonData);
+  // Mengambil data dari parameter atau default menjadi objek kosong
+  const {jsonData = {}} = route.params || {};
+  console.log('Ini json data:', jsonData);
+
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use:', dataToUse);
 
   return (
     <View style={styles.container}>
@@ -31,15 +65,15 @@ const HomeRelawan = ({navigation, route}) => {
               style={styles.userIcon}
             />
             <View>
-              <Text style={styles.userName}>{jsonData.nama_relawan}</Text>
-              <Text style={styles.userStatus}>{jsonData.email}</Text>
+              <Text style={styles.userName}>{dataToUse.nama_relawan}</Text>
+              <Text style={styles.userStatus}>{dataToUse.email}</Text>
             </View>
           </View>
         </View>
         <View style={styles.menuContainer}>
           <TouchableOpacity
             style={styles.buttonIconMap}
-            onPress={() => navigation.navigate('MapScreen')}>
+            onPress={() => navigation.navigate('MapScreenRelawan')}>
             <Image
               source={require('../../../src/assets/images/maps.png')}
               style={styles.imageButton}
@@ -48,7 +82,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonIconReportHistory}
-            onPress={() => navigation.navigate('HistoryPelaporan')}>
+            onPress={() => navigation.navigate('HistoryPelaporanRelawan')}>
             <Image
               source={require('../../../src/assets/images/report_history.png')}
               style={styles.imageButton}
@@ -57,7 +91,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonIconReportHistory}
-            onPress={() => navigation.navigate('HistoryPelaporan')}>
+            onPress={() => navigation.navigate('HistoryRelawan')}>
             <Image
               source={require('../../../src/assets/images/report_history.png')}
               style={styles.imageButton}
@@ -66,7 +100,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonIconProfile}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate('ProfileRelawan')}>
             <Image
               source={require('../../../src/assets/images/profile_pict2.png')}
               style={styles.imageButton}
@@ -75,7 +109,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonIconAddReport}
-            onPress={() => navigation.navigate('Pelaporan')}>
+            onPress={() => navigation.navigate('PelaporanRelawan')}>
             <Image
               source={require('../../../src/assets/images/add_report.png')}
               style={styles.imageButton}
@@ -84,7 +118,7 @@ const HomeRelawan = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonIconChangePass}
-            onPress={() => navigation.navigate('Profile')}>
+            onPress={() => navigation.navigate('ProfileRelawan')}>
             <Image
               source={require('../../../src/assets/images/change_pass.png')}
               style={styles.imageButton}
