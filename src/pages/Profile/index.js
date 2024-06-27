@@ -1,4 +1,3 @@
-// ProfileScreen.js
 import React, {Component} from 'react';
 import {
   View,
@@ -10,25 +9,39 @@ import {
   Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Navbar from '../../components/Navbar';
 
 class ProfileScreen extends Component {
   constructor(props) {
     super(props);
 
-    // cara mendapatkan data dari paramenter
-    const {jsonData} = this.props.route.params;
-    //console.log("Test ClassScreen");
-    //console.log(jsonData);
-
-    // Menyimpan data di dalam state
     this.state = {
-      jsonData: jsonData,
+      jsonData: null,
     };
-
-    //console.log("email: "+jsonData[0].email);
   }
+
+  async componentDidMount() {
+    try {
+      const savedData = await AsyncStorage.getItem('jsonData');
+      if (savedData) {
+        this.setState({jsonData: JSON.parse(savedData)});
+      } else {
+        const {jsonData} = this.props.route.params;
+        await AsyncStorage.setItem('jsonData', JSON.stringify(jsonData));
+        this.setState({jsonData});
+      }
+    } catch (error) {
+      console.error('Failed to load jsonData from AsyncStorage:', error);
+    }
+  }
+
   renderContent() {
+    const {jsonData} = this.state;
+    if (!jsonData) {
+      return null;
+    }
+
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
@@ -41,24 +54,30 @@ class ProfileScreen extends Component {
             </View>
           </View>
         </LinearGradient>
-        <Text style={styles.title}>{jsonData.nama_relawan}</Text>
+        <Text style={styles.title}>{jsonData.user_name}</Text>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputTitle}>Username</Text>
+          <Text style={styles.inputTitle}>Role</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.nama_relawan}
+            value={jsonData.role}
+            editable={false}
+          />
+          <Text style={styles.inputTitle}>Gender</Text>
+          <TextInput
+            style={styles.input}
+            value={jsonData.gender}
             editable={false}
           />
           <Text style={styles.inputTitle}>Email</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.nama_relawan}
+            value={jsonData.email}
             editable={false}
           />
           <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.nama_relawan}
+            value={jsonData.whatsapp_number}
             editable={false}
           />
         </View>
@@ -67,11 +86,15 @@ class ProfileScreen extends Component {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.homeButton}
-          onPress={() => navigation.navigate('HomeMasyarakat')}>
+          onPress={() => this.props.navigation.navigate('HomeMasyarakat')}>
           <Text style={styles.homeButtonText}>Home</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
+  }
+
+  render() {
+    return this.renderContent();
   }
 }
 
