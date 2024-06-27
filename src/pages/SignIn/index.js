@@ -76,10 +76,10 @@ const SignIn = ({navigation}) => {
 
         if (role === 'relawan') {
           Alert.alert('Login Success', 'Welcome to Silaben.');
-          navigation.navigate('HomeRelawan', {jsonData});
+          navigation.navigate('HomeRelawan', {jsonData: jsonData});
         } else if (role === 'user') {
           Alert.alert('Login Success', 'Welcome to Silaben.');
-          navigation.navigate('HomeMasyarakat', {jsonData});
+          navigation.navigate('HomeMasyarakat', {jsonData: jsonData});
         }
       })
       .catch(error => {
