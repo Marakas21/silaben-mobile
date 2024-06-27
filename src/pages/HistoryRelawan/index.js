@@ -20,7 +20,7 @@ const HistoryRelawan = ({navigation}) => {
           <Image
             source={require('../../../src/assets/images/home_white.png')}
             style={styles.buttonIcon}
-            onPress={() => navigation.navigate('HomeMasyarakat')}
+            onPress={() => navigation.navigate('HomeRelawan')}
           />
         </LinearGradient>
       </View>
