@@ -7,14 +7,18 @@ import {BottomNavigator} from '../components/';
 import HomeMasyarakat from '../pages/HomeMasyarakat';
 import HomeRelawan from '../pages/HomeRelawan';
 import MapScreen from '../pages/Maps';
+import MapScreenRelawan from '../pages/MapsRelawan';
 import Pelaporan from '../pages/Pelaporan';
-import Profile from '../pages/Profile';
+import PelaporanRelawan from '../pages/PelaporanRelawan';
+import ProfileScreen from '../pages/Profile';
 import Splash from '../pages/Splash';
 import SignIn from '../pages/SignIn';
 import SignupMasyarakat from '../pages/SignupMasyarakat';
 import SignupRelawan from '../pages/SignupRelawan';
 import HistoryPelaporan from '../pages/HistoryPelaporan';
+import HistoryPelaporanRelawan from '../pages/HistoryPelaporanRelawan';
 import HistoryRelawan from '../pages/HistoryRelawan';
+import ProfileRelawanScreen from '../pages/ProfileRelawan';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +52,11 @@ const Router = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="HistoryPelaporanRelawan"
+          component={HistoryPelaporanRelawan}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
           name="HistoryRelawan"
           component={HistoryRelawan}
           options={{headerShown: false}}
@@ -68,13 +77,28 @@ const Router = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="MapScreenRelawan"
+          component={MapScreenRelawan}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
           name="Pelaporan"
           component={Pelaporan}
           options={{headerShown: false}}
         />
         <Stack.Screen
+          name="PelaporanRelawan"
+          component={PelaporanRelawan}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
           name="Profile"
-          component={Profile}
+          component={ProfileScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ProfileRelawan"
+          component={ProfileRelawanScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
