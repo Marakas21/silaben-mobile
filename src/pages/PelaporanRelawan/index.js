@@ -25,6 +25,7 @@ import Geolocation from 'react-native-geolocation-service';
 const Pelaporan = React.memo(
   ({
     navigation,
+    route,
     defaultTitle = 'Default Title', // default parameter
     defaultDescription = 'Default Description', // default parameter
     ...props
@@ -44,14 +45,24 @@ const Pelaporan = React.memo(
     const [anonim, setAnonim] = useState('');
     const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
-    const [selectedImageFile, setSelectedImageFile] = useState(null);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [fileName, setFileName] = useState('');
+    [fileName, setFileName] = useState('');
+
+    // Mengambil data dari parameter atau default menjadi objek kosong
+    const {jsonData = {}} = route.params || {};
+    console.log('Ini json data Pelaporan:', jsonData);
 
     const mapRef = useRef(null);
 
     const handleCreatePelaporan = () => {
-      // check if input fields are not empty or only spaces
+      const options = {
+        mediaType: 'photo',
+        quality: 1,
+        storageOptions: {
+          path: 'images',
+        },
+      };
+
       if (
         !report_title ||
         !description ||
@@ -70,71 +81,48 @@ const Pelaporan = React.memo(
         return;
       }
 
-      // Convert latitude and longitude to strings
-      const latitudeString = location.latitude.toString();
-      const longitudeString = location.longitude.toString();
+      const formData = new FormData();
+      formData.append('report-title', report_title);
+      formData.append('report-description', description);
+      formData.append('input-long-location', location.longitude);
+      formData.append('input-lat-location', location.latitude);
+      formData.append('input-lokasi-bencana', locationText);
+      formData.append('lapor-instansi', lapor_instansi);
+      formData.append('report-date', date);
+      formData.append('report-time', time);
+      formData.append('identity', 'tidak anonim');
+      formData.append('user-id', jsonData.relawan_id);
+      formData.append('user-role', 'relawan');
+      formData.append('report-file', {
+        uri: selectedImage.uri,
+        name: selectedImage.fileName,
+        type: selectedImage.type,
+      }); // Append image correctly
 
-      // create request body with input values
-      const requestBody = {
-        'report-title': report_title,
-        'report-description': description,
-        'input-long-location': longitudeString,
-        'input-lat-location': latitudeString,
-        'input-lokasi-bencana': locationText,
-        'lapor-instansi': lapor_instansi,
-        'report-date': date,
-        'report-time': time,
-        identity: anonim,
-        'user-id': '12345',
-        'user-role': 'user',
-        'report-file': selectedImageFile.uri,
-      };
+      console.log('Ini formData', formData);
 
-      // const formData = new FormData();
-      // Object.keys(requestBody).forEach(key => {
-      //   formData.append(key, requestBody[key]);
-      // });
-      // formData.append('report-file', {
-      //   uri: selectedImageFile.uri,
-      //   type: selectedImageFile.type,
-      //   name: selectedImageFile.fileName,
-      // });
-
-      console.log('Ini requestBody', requestBody);
-
-      // Time out request data
       const timeoutPromise = new Promise((resolve, reject) => {
         setTimeout(() => {
           reject(new Error('Request timed out.'));
-        }, 5000); // 5000 (5 detik)
+        }, 15000);
       });
+
+      //const boundary = 'boundary-' + Math.random().toString(36).substring(2);
       Promise.race([
         fetch('https://silaben.site/app/public/home/submitlaporanmobile', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'multipart/form-data',
           },
-          body: Object.keys(requestBody)
-            .map(
-              key =>
-                `${encodeURIComponent(key)}=${encodeURIComponent(
-                  requestBody[key],
-                )}`,
-            )
-            .join('&'),
+          body: formData,
         }),
         timeoutPromise,
       ])
         .then(response => response.text())
         .then(textData => {
-          // handle response data
           console.log(textData);
 
-          // check if textData contains "ERROR"
           if (textData.includes('LAPOR FAILED')) {
-            console.log('Ini textData', textData);
-            // handle error case
-            //console.error("Login failed:", textData);
             Alert.alert(
               'Error Message',
               'Sorry, create new account failed. Please try again.',
@@ -142,26 +130,20 @@ const Pelaporan = React.memo(
             return;
           }
 
-          // check if textData contains "INCORRECT"
-          if (textData.includes('DUPLICATE')) {
-            // handle INCORRECT case
-            Alert.alert(
-              'Error Message',
-              'Sorry, duplicate email/nim/reg.number were found in database. Please contact the administrator.',
-            );
-            return;
-          }
-          console.log('Ini textData', textData);
-          console.log('Ini requestBody', requestBody);
+          // if (textData.includes('DUPLICATE')) {
+          //   Alert.alert(
+          //     'Error Message',
+          //     'Sorry, duplicate email/nim/reg.number were found in database. Please contact the administrator.',
+          //   );
+          //   return;
+          // }
 
           if (textData.includes('LAPOR SUCCESS')) {
-            // message
             Alert.alert('Laporan anda berhasil dikirim.');
 
-            // Set empty field
             setReportTitle('');
             setDescription('');
-            setLocation({latitude: '0', longitude: '0'});
+            setLocation({latitude: 0, longitude: 0});
             setInputLongLocation('');
             setInputLatLocation('');
             setLocationText('');
@@ -170,73 +152,33 @@ const Pelaporan = React.memo(
             setLaporInstansi('');
             setReportFile('');
             setAnonim('');
+            setSelectedImage('');
           }
         })
         .catch(error => {
-          //console.error(error);
           Alert.alert('Error Message', error.message);
+          console.log('Error in fetch request:', error);
           return;
         });
     };
 
-    // useEffect(() => {
-    //   requestLocationPermission();
-    //   Geolocation.getCurrentPosition(
-    //     position => {
-    //       console.log(position);
-    //     },
-    //     error => {
-    //       console.log(error.code, error.message);
-    //     },
-    //     {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-    //   );
-    // }, []);
-
-    // const requestLocationPermission = async () => {
-    //   if (Platform.OS === 'android') {
-    //     try {
-    //       const granted = await PermissionsAndroid.request(
-    //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    //         {
-    //           title: 'Location Permission',
-    //           message: 'This app needs access to your location.',
-    //           buttonNeutral: 'Ask Me Later',
-    //           buttonNegative: 'Cancel',
-    //           buttonPositive: 'OK',
-    //         },
-    //       );
-    //       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-    //         console.log('You can use the location');
-    //       } else {
-    //         console.log('Location permission denied');
-    //       }
-    //     } catch (err) {
-    //       console.warn(err);
-    //     }
-    //   }
-    // };
-
     const handleImagePicker = () => {
       const options = {
+        mediaType: 'photo',
+        quality: 1,
         storageOptions: {
           path: 'images',
         },
       };
 
-      launchImageLibrary(options, response => {
+      launchImageLibrary(options, async response => {
         if (response.assets && response.assets.length > 0) {
           const selectedAsset = response.assets[0];
-          setSelectedImage(selectedAsset.uri);
-          // Ambil nama file dan ekstensi dari URI menggunakan split('/') dan split('.')
-          const uriParts = selectedAsset.uri.split('/');
-          const fileNameParts = uriParts[uriParts.length - 1].split('.');
-          const imageFileName = fileNameParts[0];
-          const imageFileExt = fileNameParts[fileNameParts.length - 1];
-          setFileName(`${imageFileName}.${imageFileExt}`);
-          console.log(
-            'Selected file name:',
-            `${imageFileName}.${imageFileExt}`,
-          );
+          setSelectedImage({
+            uri: selectedAsset.uri,
+            fileName: selectedAsset.fileName,
+            type: selectedAsset.type,
+          });
         }
       });
     };
@@ -257,8 +199,8 @@ const Pelaporan = React.memo(
       const {latitude, longitude} = event.nativeEvent.coordinate;
       setLocation({
         ...location,
-        latitude: latitude.toString(),
-        longitude: longitude.toString(),
+        latitude: latitude,
+        longitude: longitude,
       });
       updateLocationText(latitude, longitude);
     };
@@ -267,8 +209,8 @@ const Pelaporan = React.memo(
       const {latitude, longitude} = event.nativeEvent.coordinate;
       setLocation({
         ...location,
-        latitude: latitude.toString(),
-        longitude: longitude.toString(),
+        latitude: latitude,
+        longitude: longitude,
       });
       updateLocationText(latitude, longitude);
       mapRef.animateToRegion(
@@ -342,7 +284,9 @@ const Pelaporan = React.memo(
               style={styles.header}>
               <Text style={styles.headerText}>Buat Pelaporan</Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HomeRelawan')}>
+                onPress={() =>
+                  navigation.navigate('HomeRelawan', {jsonData: jsonData})
+                }>
                 <Image
                   source={require('../../../src/assets/images/home_white.png')}
                   style={styles.buttonIcon}
@@ -500,7 +444,7 @@ const Pelaporan = React.memo(
                   style={styles.input}
                   value={location.latitude.toString()}
                   onChangeText={text =>
-                    setLocation({...location, latitude: text})
+                    setLocation({...location, latitude: parseFloat(text)})
                   }
                   keyboardType="numeric"
                 />
@@ -511,7 +455,7 @@ const Pelaporan = React.memo(
                   style={styles.input}
                   value={location.longitude.toString()}
                   onChangeText={text =>
-                    setLocation({...location, longitude: text})
+                    setLocation({...location, longitude: parseFloat(text)})
                   }
                   keyboardType="numeric"
                 />
@@ -528,13 +472,15 @@ const Pelaporan = React.memo(
               <Text style={styles.inputText}>Unggah Gambar</Text>
               {selectedImage && (
                 <Image
-                  source={{uri: selectedImage}}
+                  source={{uri: selectedImage.uri}}
                   style={styles.imagePreview}
                 />
               )}
             </TouchableOpacity>
-            {fileName ? <Text>Nama File: {fileName}</Text> : null}
-            <View style={styles.radioGroup}>
+            {fileName ? (
+              <Text style={styles.label}>Nama File: {fileName}</Text>
+            ) : null}
+            {/* <View style={styles.radioGroup}>
               <TouchableOpacity
                 style={styles.radioButton}
                 onPress={() => setAnonim('Anonim')}>
@@ -559,7 +505,7 @@ const Pelaporan = React.memo(
                 />
                 <Text style={styles.radioText}>Tidak Anonim</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
             <TouchableOpacity
               style={styles.button}
               onPress={handleCreatePelaporan}>
@@ -611,6 +557,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 5,
     marginBottom: 15,
+    color: '#707070',
   },
   pickerContainer: {
     borderWidth: 1,
@@ -715,6 +662,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
+  },
+  label: {
+    color: '#707070',
   },
 });
 
