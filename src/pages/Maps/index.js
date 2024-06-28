@@ -1,35 +1,79 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
-import Navbar from '../../components/Navbar';
+import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 
-const MapScreen = ({navigation}) => {
+const App = ({navigation}) => {
+  const [markers, setMarkers] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  const markers = [
-    {
-      coordinate: {latitude: 1.4153965, longitude: 124.9867153},
-      title: 'Kebakaran',
-      description: 'Sedang Terjadi',
-      image: require('../../../src/assets/images/image_report.png'),
-      tag: require('../../../src/assets/images/fire.png'),
-    },
-    {
-      coordinate: {latitude: 1.4157411, longitude: 124.9829443},
-      title: 'Pohon Tumbang',
-      description: 'Sedang Terjadi',
-      image: require('../../../src/assets/images/image_report.png'),
-      tag: require('../../../src/assets/images/tree_fall.png'),
-    },
-    // Add more markers as needed
-  ];
-
-  const handleMarkerPress = marker => {
-    setSelectedMarker(marker);
+  const getTagImage = jenisBencana => {
+    switch (jenisBencana.toLowerCase()) {
+      case 'gempa bumi':
+        return require('../../../src/assets/images/gempa.png');
+      case 'tsunami':
+        return require('../../../src/assets/images/tsunami.png');
+      case 'gunung meletus':
+        return require('../../../src/assets/images/gunung_meletus.png');
+      case 'banjir':
+        return require('../../../src/assets/images/banjir.png');
+      case 'angin topan':
+        return require('../../../src/assets/images/angin_topan.png');
+      case 'tanah longsor':
+        return require('../../../src/assets/images/tanah_longsor.png');
+      case 'pohon tumbang':
+        return require('../../../src/assets/images/pohon_tumbang.png');
+      case 'kebakaran hutan dan lahan':
+        return require('../../../src/assets/images/kebakaran_hutan.png');
+      case 'kecelakaan transportasi':
+        return require('../../../src/assets/images/kecelakaan_transportasi.png');
+      case 'wabah penyakit':
+        return require('../../../src/assets/images/wabah_penyakit.png');
+      case 'polusi':
+        return require('../../../src/assets/images/polusi.png');
+      case 'pencemaran lingkungan':
+        return require('../../../src/assets/images/pencemaran_lingkungan.png');
+      case 'kerusakan jalan':
+        return require('../../../src/assets/images/kerusakan_jalan.png');
+      case 'kemacetan':
+        return require('../../../src/assets/images/kemacetan.png');
+      case 'konflik sosial':
+        return require('../../../src/assets/images/konflik_sosial.png');
+      case 'pencurian':
+        return require('../../../src/assets/images/pencurian.png');
+      case 'kekerasan':
+        return require('../../../src/assets/images/kekerasan.png');
+      default:
+        return require('../../../src/assets/images/default.png');
+    }
   };
 
   useEffect(() => {
-    // You can add any fetching logic or data updates here
+    const fetchMarkers = async () => {
+      try {
+        const response = await fetch(
+          'https://silaben.site/app/public/home/datalaporanmobile',
+        );
+        const data = await response.json();
+        console.log('Fetched data:', data); // Debugging log
+
+        const fetchedMarkers = data.map(item => ({
+          coordinate: {
+            latitude: parseFloat(item.latitude),
+            longitude: parseFloat(item.longitude),
+          },
+          title: item.jenis_bencana,
+          description: item.deskripsi_singkat_ai,
+          image: require('../../../src/assets/images/image_report.png'), // Update as needed
+          tag: getTagImage(item.jenis_bencana),
+        }));
+
+        setMarkers(fetchedMarkers);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchMarkers();
   }, []);
 
   return (
@@ -43,16 +87,22 @@ const MapScreen = ({navigation}) => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}>
-        {markers.map(marker => (
+        {markers.map((marker, index) => (
           <Marker
-            key={marker.title}
+            key={index}
             coordinate={marker.coordinate}
-            title={marker.title}
-            description={marker.description}
-            onPress={() => handleMarkerPress(marker)}
+            onPress={() => setSelectedMarker(marker)}
             image={marker.tag}
-            style={styles.tag}
-          />
+            style={styles.tag}>
+            <Callout>
+              <View style={styles.callout}>
+                <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={styles.calloutDescription}>
+                  {marker.description}
+                </Text>
+              </View>
+            </Callout>
+          </Marker>
         ))}
       </MapView>
 
@@ -65,6 +115,7 @@ const MapScreen = ({navigation}) => {
           </Text>
         </View>
       )}
+
       <TouchableOpacity
         style={styles.homeButton}
         onPress={() => navigation.navigate('HomeMasyarakat')}>
@@ -73,33 +124,59 @@ const MapScreen = ({navigation}) => {
           style={styles.homeIcon}
         />
       </TouchableOpacity>
-      <Navbar />
+
+      <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Maps')}>
+          <Image
+            source={require('../../../src/assets/images/maps2.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Home')}>
+          <Image
+            source={require('../../../src/assets/images/add_report2.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Profile')}>
+          <Image
+            source={require('../../../src/assets/images/profile_pict3.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: '#003366',
-    padding: 30,
-    alignItems: 'center',
-    borderBottomRightRadius: 5,
-    borderBottomLeftRadius: 5,
-  },
-  headerText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   container: {
     flex: 1,
   },
-  tag: {
-    width: 20, // Adjust the width to make the tag larger
-    height: 20, // Adjust the height to make the tag larger
-  },
   map: {
     flex: 1,
+  },
+  tag: {
+    width: 20,
+    height: 20,
+  },
+  callout: {
+    width: 150,
+  },
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  calloutDescription: {
+    fontSize: 12,
+    color: 'black',
   },
   markerDetails: {
     position: 'absolute',
@@ -127,10 +204,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#707070',
   },
-  reportUser: {
-    fontSize: 14,
-    color: '#555555',
-  },
   homeButton: {
     position: 'absolute',
     top: 20,
@@ -148,6 +221,21 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 15,
+    borderTopWidth: 1,
+    borderColor: '#EEEEEE',
+    backgroundColor: '#FFFFFF',
+  },
+  navButton: {
+    alignItems: 'center',
+  },
+  navIcon: {
+    width: 30,
+    height: 30,
+  },
 });
 
-export default MapScreen;
+export default App;
