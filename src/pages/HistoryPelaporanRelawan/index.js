@@ -34,8 +34,7 @@ const CashonDigital = ({navigation}) => {
           style={styles.header}
           onPress={() => navigation.navigate('HomeMasyarakat')}>
           <Text style={styles.headerText}>History Pelaporan</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HomeMasyarakat')}>
+          <TouchableOpacity onPress={() => navigation.navigate('HomeRelawan')}>
             <Image
               source={require('../../../src/assets/images/home_white.png')}
               style={styles.buttonIcon}
@@ -143,6 +142,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#000000',
   },
   status: {
     fontSize: 14,
