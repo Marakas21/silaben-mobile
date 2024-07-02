@@ -71,8 +71,7 @@ const Pelaporan = React.memo(
         !date ||
         !time ||
         !lapor_instansi ||
-        !locationText ||
-        !anonim
+        !locationText
       ) {
         Alert.alert(
           'Empty Input Field',
