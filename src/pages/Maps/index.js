@@ -1,10 +1,27 @@
-import React, {useState, useEffect} from 'react';
-import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  PermissionsAndroid,
+  Linking,
+} from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Button,
+} from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
+import Geolocation from 'react-native-geolocation-service';
 
-const App = ({navigation}) => {
+const MapScreen = ({navigation}) => {
   const [markers, setMarkers] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [distance, setDistance] = useState(null);
 
   const getTagImage = jenisBencana => {
     switch (jenisBencana.toLowerCase()) {
@@ -47,6 +64,10 @@ const App = ({navigation}) => {
     }
   };
 
+  const getFullImageUrl = filename => {
+    return `https://silaben.site/app/public/fotobukti/${filename}`;
+  };
+
   useEffect(() => {
     const fetchMarkers = async () => {
       try {
@@ -63,7 +84,9 @@ const App = ({navigation}) => {
           },
           title: item.jenis_bencana,
           description: item.deskripsi_singkat_ai,
-          image: require('../../../src/assets/images/image_report.png'), // Update as needed
+          location: item.lokasi,
+          status: item.status,
+          image: {uri: getFullImageUrl(item.report_file_name_bukti)}, // Update as needed
           tag: getTagImage(item.jenis_bencana),
         }));
 
@@ -76,8 +99,102 @@ const App = ({navigation}) => {
     fetchMarkers();
   }, []);
 
+  // Function to get permission for location
+  const requestLocationPermission = useCallback(async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Geolocation Permission',
+          message: 'Can we access your location?',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      console.log('granted', granted);
+      return granted === 'granted';
+    } catch (err) {
+      return false;
+    }
+  }, []);
+
+  // Function to calculate distance between two coordinates using Haversine formula (jarak dalam satuan KM)
+  const calculateDistance = useCallback((lat1, lon1) => {
+    const lat2 = 1.4176958556026646; // koordinat latitude Universitas Klabat
+    const lon2 = 124.98398510245137; // koordinat longitude Universitas Klabat
+    const R = 6371; // radius of the earth in km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c * 1000;
+    setDistance(distance.toFixed(2)); // set the state of distance
+  }, []);
+
+  const toRad = value => {
+    return (value * Math.PI) / 180;
+  };
+
+  // Function to check permissions and get Location
+  const getLocation = useCallback(async () => {
+    const res = await requestLocationPermission();
+    console.log('res is:', res);
+    if (res) {
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(position);
+          setLocation(position);
+          calculateDistance(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+        },
+        error => {
+          console.log(error.code, error.message);
+          setLocation(null);
+        },
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      );
+
+      // Watch for location changes
+      Geolocation.watchPosition(
+        position => {
+          console.log(position);
+          setLocation(position);
+          calculateDistance(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+        },
+        error => {
+          console.log(error.code, error.message);
+          setLocation(null);
+        },
+        {enableHighAccuracy: true, distanceFilter: 10},
+      );
+    }
+  }, [requestLocationPermission, calculateDistance]);
+
+  useEffect(() => {
+    getLocation();
+    console.log('Fungsi useEffect sudah dipanggil.');
+  }, [getLocation]);
+
   return (
     <View style={styles.container}>
+      <View
+        style={{marginTop: 10, padding: 10, borderRadius: 10, width: '40%'}}>
+        <Button title="Get Location" onPress={getLocation} />
+      </View>
+      <Text>Latitude: {location ? location.coords.latitude : '?'}</Text>
+      <Text>Longitude: {location ? location.coords.longitude : '?'}</Text>
+      <Text>Jarak dengan Unklab: {distance ? distance : '?'} meter.</Text>
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -96,10 +213,13 @@ const App = ({navigation}) => {
             style={styles.tag}>
             <Callout>
               <View style={styles.callout}>
+                <Image source={marker.image} style={styles.calloutImage} />
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={styles.calloutLocation}>{marker.location}</Text>
                 <Text style={styles.calloutDescription}>
                   {marker.description}
                 </Text>
+                <Text style={styles.calloutStatus}>{marker.status}</Text>
               </View>
             </Callout>
           </Marker>
@@ -112,6 +232,9 @@ const App = ({navigation}) => {
           <Text style={styles.markerTitle}>{selectedMarker.title}</Text>
           <Text style={styles.markerDescription}>
             {selectedMarker.description}
+          </Text>
+          <Text style={styles.markerDescription}>
+            {selectedMarker.location}
           </Text>
         </View>
       )}
@@ -169,6 +292,11 @@ const styles = StyleSheet.create({
   callout: {
     width: 150,
   },
+  calloutImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+  },
   calloutTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -177,6 +305,16 @@ const styles = StyleSheet.create({
   calloutDescription: {
     fontSize: 12,
     color: 'black',
+  },
+  calloutLocation: {
+    fontSize: 14,
+    marginTop: 4,
+    color: '#707070',
+  },
+  calloutStatus: {
+    fontSize: 14,
+    marginTop: 4,
+    color: 'red',
   },
   markerDetails: {
     position: 'absolute',
@@ -238,4 +376,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default MapScreen;
