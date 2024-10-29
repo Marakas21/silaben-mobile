@@ -5,7 +5,7 @@ import Logo from '../../assets/icon/Logo.svg';
 const SplashScreen = ({navigation}) => {
   useEffect(() => {
     setTimeout(() => {
-      navigation.replace('MapScreen');
+      navigation.replace('HomeMasyarakat');
     }, 3000);
   }, [navigation]);
 
