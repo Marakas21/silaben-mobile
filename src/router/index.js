@@ -77,7 +77,7 @@ const Router = () => {
           options={{headerShown: false}}
         />
         <Stack.Screen
-          name="MapScreenRelawan"
+          name="MapsRelawan"
           component={MapScreenRelawan}
           options={{headerShown: false}}
         />
