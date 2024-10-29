@@ -1,11 +1,4 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  PermissionsAndroid,
-  Linking,
-} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   View,
@@ -13,15 +6,114 @@ import {
   TouchableOpacity,
   Image,
   Button,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 
-const MapScreen = ({navigation}) => {
+const MapScreen = ({navigation, route}) => {
   const [markers, setMarkers] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [location, setLocation] = useState(null);
   const [distance, setDistance] = useState(null);
+  const {jsonData = {}} = route.params || {};
+
+  // Fungsi untuk mengkalkulasi jarak antara dua koordinat geografis
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // Radius Bumi dalam kilometer
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // Fungsi untuk meminta izin akses lokasi
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  async function requestLocationPermission() {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Location Permission',
+          message:
+            'This app requires location access to monitor disaster alerts.',
+          buttonPositive: 'OK',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    return true;
+  }
+
+  // Fungsi untuk memulai tracking dan foreground service
+  // async function startTracking() {
+  //   const hasPermission = await requestLocationPermission();
+  //   if (!hasPermission) return;
+
+  //   ForegroundService.start({
+  //     id: 1,
+  //     title: 'Disaster Alert Tracking',
+  //     message: 'Tracking your location in background.',
+  //   });
+
+  //   const radius = 13; // Radius dalam kilometer
+
+  //   // Watch Position untuk update lokasi secara berkala
+  //   Geolocation.watchPosition(
+  //     async position => {
+  //       const {latitude, longitude} = position.coords;
+
+  //       try {
+  //         // Ambil data bencana dari API
+  //         const response = await fetch(
+  //           'https://silaben.site/app/public/home/getDisasterDataFromRedis',
+  //         );
+  //         const data = await response.json();
+
+  //         if (data.status === 'active') {
+  //           const disasterLat = data.latitude;
+  //           const disasterLng = data.longitude;
+  //           const message = data.message;
+
+  //           // Kalkulasi jarak pengguna dari lokasi bencana
+  //           const distance = calculateDistance(
+  //             latitude,
+  //             longitude,
+  //             disasterLat,
+  //             disasterLng,
+  //           );
+
+  //           // Jika jarak dalam radius, kirim notifikasi WhatsApp
+  //           if (distance <= radius) {
+  //             Alert.alert('Peringatan!', message);
+  //             sendMessage(message);
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching disaster data:', error);
+  //       }
+  //     },
+  //     error => {
+  //       console.error('Error watching position:', error);
+  //     },
+  //     {
+  //       enableHighAccuracy: true,
+  //       distanceFilter: 50, // Update lokasi setiap kali jarak berubah sejauh 50 meter
+  //     },
+  //   );
+  // }
+
+  // useEffect(() => {
+  //   startTracking();
+  // }, []);
 
   const getTagImage = jenisBencana => {
     switch (jenisBencana.toLowerCase()) {
@@ -68,87 +160,54 @@ const MapScreen = ({navigation}) => {
     return `https://silaben.site/app/public/fotobukti/${filename}`;
   };
 
-  useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const response = await fetch(
-          'https://silaben.site/app/public/home/datalaporanmobile',
-        );
-        const data = await response.json();
-        console.log('Fetched data:', data); // Debugging log
-
-        const fetchedMarkers = data.map(item => ({
-          coordinate: {
-            latitude: parseFloat(item.latitude),
-            longitude: parseFloat(item.longitude),
-          },
-          title: item.jenis_bencana,
-          description: item.deskripsi_singkat_ai,
-          location: item.lokasi,
-          status: item.status,
-          image: {uri: getFullImageUrl(item.report_file_name_bukti)}, // Update as needed
-          tag: getTagImage(item.jenis_bencana),
-        }));
-
-        setMarkers(fetchedMarkers);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchMarkers();
-  }, []);
-
-  // Function to get permission for location
-  const requestLocationPermission = useCallback(async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Geolocation Permission',
-          message: 'Can we access your location?',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      console.log('granted', granted);
-      return granted === 'granted';
-    } catch (err) {
-      return false;
-    }
-  }, []);
-
-  // Function to calculate distance between two coordinates using Haversine formula (jarak dalam satuan KM)
-  const calculateDistance = useCallback((lat1, lon1) => {
-    const lat2 = 1.4176958556026646; // koordinat latitude Universitas Klabat
-    const lon2 = 124.98398510245137; // koordinat longitude Universitas Klabat
-    const R = 6371; // radius of the earth in km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c * 1000;
-    setDistance(distance.toFixed(2)); // set the state of distance
-  }, []);
+  // const requestLocationPermission = useCallback(async () => {
+  //   try {
+  //     if (Platform.OS === 'android') {
+  //       const granted = await PermissionsAndroid.request(
+  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //         {
+  //           title: 'Geolocation Permission',
+  //           message: 'Can we access your location?',
+  //           buttonNeutral: 'Ask Me Later',
+  //           buttonNegative: 'Cancel',
+  //           buttonPositive: 'OK',
+  //         },
+  //       );
+  //       return granted === PermissionsAndroid.RESULTS.GRANTED;
+  //     }
+  //     return true;
+  //   } catch (err) {
+  //     console.warn(err);
+  //     return false;
+  //   }
+  // }, []);
 
   const toRad = value => {
     return (value * Math.PI) / 180;
   };
 
-  // Function to check permissions and get Location
+  // const calculateDistance = useCallback((lat1, lon1) => {
+  //   const lat2 = 1.4309050145865363;
+  //   const lon2 = 124.96914782576363;
+  //   const R = 6371;
+  //   const dLat = toRad(lat2 - lat1);
+  //   const dLon = toRad(lon2 - lon1);
+  //   const a =
+  //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  //     Math.cos(toRad(lat1)) *
+  //       Math.cos(toRad(lat2)) *
+  //       Math.sin(dLon / 2) *
+  //       Math.sin(dLon / 2);
+  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  //   const distance = R * c * 1000;
+  //   setDistance(distance.toFixed(2));
+  // }, []);
+
   const getLocation = useCallback(async () => {
     const res = await requestLocationPermission();
-    console.log('res is:', res);
     if (res) {
       Geolocation.getCurrentPosition(
         position => {
-          console.log(position);
           setLocation(position);
           calculateDistance(
             position.coords.latitude,
@@ -162,10 +221,8 @@ const MapScreen = ({navigation}) => {
         {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
       );
 
-      // Watch for location changes
       Geolocation.watchPosition(
         position => {
-          console.log(position);
           setLocation(position);
           calculateDistance(
             position.coords.latitude,
@@ -182,8 +239,38 @@ const MapScreen = ({navigation}) => {
   }, [requestLocationPermission, calculateDistance]);
 
   useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const response = await fetch(
+          'https://silaben.site/app/public/home/datalaporanmobile',
+        );
+        const data = await response.json();
+        console.log('Fetched data:', data);
+
+        const fetchedMarkers = data.map(item => ({
+          coordinate: {
+            latitude: parseFloat(item.latitude),
+            longitude: parseFloat(item.longitude),
+          },
+          title: item.jenis_bencana,
+          description: item.deskripsi_singkat_ai,
+          image: {uri: getFullImageUrl(item.report_file_name_bukti)},
+          tag: getTagImage(item.jenis_bencana),
+          lokasi: item.lokasi_bencana,
+          level: item.level_kerusakan_infrastruktur,
+          Status: item.status,
+          date: item.report_date,
+          time: item.report_time,
+        }));
+
+        setMarkers(fetchedMarkers);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchMarkers();
     getLocation();
-    console.log('Fungsi useEffect sudah dipanggil.');
   }, [getLocation]);
 
   return (
@@ -195,6 +282,7 @@ const MapScreen = ({navigation}) => {
       <Text>Latitude: {location ? location.coords.latitude : '?'}</Text>
       <Text>Longitude: {location ? location.coords.longitude : '?'}</Text>
       <Text>Jarak dengan Unklab: {distance ? distance : '?'} meter.</Text>
+
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -213,13 +301,23 @@ const MapScreen = ({navigation}) => {
             style={styles.tag}>
             <Callout>
               <View style={styles.callout}>
-                <Image source={marker.image} style={styles.calloutImage} />
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutLocation}>{marker.location}</Text>
                 <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Deskripsi: </Text>{' '}
                   {marker.description}
                 </Text>
-                <Text style={styles.calloutStatus}>{marker.status}</Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Lokasi: </Text>
+                  {marker.lokasi}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Level Kerusakan: </Text>
+                  {marker.level}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Status: </Text>
+                  {marker.Status}
+                </Text>
               </View>
             </Callout>
           </Marker>
@@ -229,19 +327,22 @@ const MapScreen = ({navigation}) => {
       {selectedMarker && (
         <View style={styles.markerDetails}>
           <Image source={selectedMarker.image} style={styles.markerImage} />
+          <View style={styles.dateTimeRow}>
+            <Text style={styles.markerTime}>{selectedMarker.date}</Text>
+            <Text style={styles.markerDate}>{selectedMarker.time}</Text>
+          </View>
           <Text style={styles.markerTitle}>{selectedMarker.title}</Text>
           <Text style={styles.markerDescription}>
             {selectedMarker.description}
-          </Text>
-          <Text style={styles.markerDescription}>
-            {selectedMarker.location}
           </Text>
         </View>
       )}
 
       <TouchableOpacity
         style={styles.homeButton}
-        onPress={() => navigation.navigate('HomeMasyarakat')}>
+        onPress={() =>
+          navigation.navigate('HomeMasyarakat', {jsonData: jsonData})
+        }>
         <Image
           source={require('../../../src/assets/images/home.png')}
           style={styles.homeIcon}
@@ -292,11 +393,6 @@ const styles = StyleSheet.create({
   callout: {
     width: 150,
   },
-  calloutImage: {
-    width: '100%',
-    height: 100,
-    borderRadius: 10,
-  },
   calloutTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -305,16 +401,6 @@ const styles = StyleSheet.create({
   calloutDescription: {
     fontSize: 12,
     color: 'black',
-  },
-  calloutLocation: {
-    fontSize: 14,
-    marginTop: 4,
-    color: '#707070',
-  },
-  calloutStatus: {
-    fontSize: 14,
-    marginTop: 4,
-    color: 'red',
   },
   markerDetails: {
     position: 'absolute',
@@ -347,32 +433,45 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     backgroundColor: 'white',
-    padding: 10,
     borderRadius: 50,
-    shadowColor: '#003366',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    padding: 10,
     elevation: 5,
   },
   homeIcon: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
   },
   navbar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 15,
-    borderTopWidth: 1,
-    borderColor: '#EEEEEE',
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    elevation: 5,
   },
   navButton: {
-    alignItems: 'center',
+    padding: 10,
   },
   navIcon: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  markerTime: {
+    fontSize: 14,
+    color: '#707070',
+  },
+  markerDate: {
+    fontSize: 14,
+    color: '#707070',
   },
 });
 
