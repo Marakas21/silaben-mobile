@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 
-const App = ({navigation}) => {
+const MapScreenRelawan = ({navigation}) => {
   const [markers, setMarkers] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
 
@@ -238,4 +238,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default MapScreenRelawan;
