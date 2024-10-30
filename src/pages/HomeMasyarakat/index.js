@@ -260,7 +260,7 @@ const HomeMasyarakat = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.gridItem}
-            onPress={() => navigation.navigate('Profile', {jsonData})}>
+            onPress={() => navigation.navigate('Pelaporan', {jsonData})}>
             <Image
               source={require('../../../src/assets/images/add_report.png')}
               style={styles.gridIcon}
@@ -269,18 +269,18 @@ const HomeMasyarakat = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.gridItem}
-            onPress={() => navigation.navigate('Pelaporan', {jsonData})}>
+            onPress={() => navigation.navigate('Profile', {jsonData})}>
             <Image
-              source={require('../../../src/assets/images/change_pass.png')}
+              source={require('../../assets/images/big_profile.png')}
               style={styles.gridIcon}
             />
             <Text style={styles.gridText}>Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.gridItem}
-            onPress={() => navigation.navigate('Profile', {jsonData})}>
+            onPress={() => navigation.navigate('ChangePass', {jsonData})}>
             <Image
-              source={require('../../assets/images/big_profile.png')}
+              source={require('../../../src/assets/images/change_pass.png')}
               style={styles.gridIcon}
             />
             <Text style={styles.gridText}>Change Password</Text>
@@ -308,10 +308,12 @@ const HomeMasyarakat = ({navigation, route}) => {
             />
           </View>
 
-          <View style={styles.infoContainer}>
+          <View
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={[styles.infoContainer, {alignContent: 'center'}]}>
             <Text
               style={
-                styles.timeInfo
+                (styles.timeInfo, {textAlign: 'center'}, {color: 'black'})
               }>{`${data.tanggal}, ${data.jam} WIB`}</Text>
             <View style={styles.detailsContainer}>
               <Text style={styles.detailText}>
@@ -375,7 +377,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    marginBottom: 40,
+    marginBottom: 10,
   },
   user: {
     flexDirection: 'row',
@@ -518,11 +520,12 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     backgroundColor: '#fff',
-    width: '30%',
+    width: '29%',
+    height: '45%',
     padding: 10,
     alignItems: 'center',
     marginVertical: 10,
-    borderRadius: 10,
+    borderRadius: 25,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: {width: 0, height: 1},
@@ -531,16 +534,23 @@ const styles = StyleSheet.create({
   gridIcon: {
     width: 30,
     height: 30,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   gridText: {
-    fontSize: 12,
+    fontSize: 9,
     textAlign: 'center',
+    color: '#003366',
+    fontWeight: 'bold',
   },
   containerMap: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent black background
     borderRadius: 10, // rounded corners
     padding: 10,
+    marginBottom: 100,
+    width: 350,
+    marginLeft: 30,
+    alignContent: 'center',
+    marginTop: 20,
   },
   title: {
     fontSize: 18,
@@ -551,6 +561,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden', // to apply rounded corners to Image
     marginBottom: 10,
+    alignItems: 'center',
   },
   image: {
     width: '100%',
@@ -560,6 +571,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)', // semi-transparent white for better readability
     borderRadius: 10,
     padding: 10,
+    alignContent: 'center',
   },
   timeInfo: {
     fontSize: 16,
