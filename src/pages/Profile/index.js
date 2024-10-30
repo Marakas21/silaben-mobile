@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,35 +12,50 @@ import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Navbar from '../../components/Navbar';
 
-class ProfileScreen extends Component {
-  constructor(props) {
-    super(props);
+const ProfileScreen = ({navigation, route}) => {
+  const {jsonData = {}} = route.params || {};
+  console.log('Ini json data:', jsonData);
 
-    this.state = {
-      jsonData: null,
-    };
-  }
-
-  async componentDidMount() {
-    try {
-      const savedData = await AsyncStorage.getItem('jsonData');
-      if (savedData) {
-        this.setState({jsonData: JSON.parse(savedData)});
-      } else {
-        const {jsonData} = this.props.route.params;
-        await AsyncStorage.setItem('jsonData', JSON.stringify(jsonData));
-        this.setState({jsonData});
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
       }
-    } catch (error) {
-      console.error('Failed to load jsonData from AsyncStorage:', error);
-    }
-  }
+    };
 
-  renderContent() {
-    const {jsonData} = this.state;
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use profile:', dataToUse);
+
+  const renderContent = () => {
     if (!jsonData) {
       return null;
     }
+
+    console.log('ini jsondata: ', jsonData);
 
     return (
       <SafeAreaView style={styles.container}>
@@ -54,30 +69,30 @@ class ProfileScreen extends Component {
             </View>
           </View>
         </LinearGradient>
-        <Text style={styles.title}>{jsonData.user_name}</Text>
+        <Text style={styles.title}>{dataToUse.user_name}</Text>
         <View style={styles.inputContainer}>
           <Text style={styles.inputTitle}>Role</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.role}
+            value={dataToUse.role}
             editable={false}
           />
           <Text style={styles.inputTitle}>Gender</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.gender}
+            value={dataToUse.gender}
             editable={false}
           />
           <Text style={styles.inputTitle}>Email</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.email}
+            value={dataToUse.email}
             editable={false}
           />
           <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
           <TextInput
             style={styles.input}
-            value={jsonData.whatsapp_number}
+            value={dataToUse.whatsapp_number}
             editable={false}
           />
         </View>
@@ -86,17 +101,16 @@ class ProfileScreen extends Component {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.homeButton}
-          onPress={() => this.props.navigation.navigate('HomeMasyarakat')}>
+          onPress={() => navigation.navigate('HomeMasyarakat')}>
           <Text style={styles.homeButtonText}>Home</Text>
         </TouchableOpacity>
+        <Navbar />
       </SafeAreaView>
     );
-  }
+  };
 
-  render() {
-    return this.renderContent();
-  }
-}
+  return renderContent();
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -152,6 +166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 12,
     backgroundColor: 'white',
+    color: 'black',
   },
   inputTitle: {
     fontWeight: 'bold',
