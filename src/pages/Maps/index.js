@@ -9,6 +9,7 @@ import {
   PermissionsAndroid,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -23,6 +24,7 @@ const MapScreen = ({navigation, route}) => {
   const {jsonData = {}} = route.params || {};
   const [forecastData, setForecastData] = useState([]);
   const [currentWeather, setCurrentWeather] = useState(null);
+  const [weatherData, setWeatherData] = useState([]);
 
   // Fungsi untuk mengkalkulasi jarak antara dua koordinat geografis
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,6 +74,44 @@ const MapScreen = ({navigation, route}) => {
       return false;
     }
   }
+
+  // useEffect(() => {
+  //   const fetchWeatherData = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm2=71.06',
+  //       );
+  //       const data = await response.json();
+  //       console.log(data.cuaca);
+
+  //       if (Array.isArray(data.data)) {
+  //         setForecastData(data.data);
+
+  //         // Determine the closest weather forecast to the current time
+  //         const now = new Date();
+  //         data.data.forEach(item => {
+  //           const cuacaList = item.cuaca;
+
+  //           const closestWeather = cuacaList.reduce((closest, weather) => {
+  //             const weatherTime = new Date(weather.local_datetime);
+  //             return Math.abs(weatherTime - now) <
+  //               Math.abs(new Date(closest.local_datetime) - now)
+  //               ? weather
+  //               : closest;
+  //           });
+
+  //           setCurrentWeather(closestWeather);
+  //         });
+  //       } else {
+  //         console.error('Data not in array format:', data.data);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching data', error);
+  //     }
+  //   };
+
+  //   fetchWeatherData();
+  // }, []);
   // Fungsi untuk memulai tracking dan foreground service
   // async function startTracking() {
   //   const hasPermission = await requestLocationPermission();
@@ -185,7 +225,7 @@ const MapScreen = ({navigation, route}) => {
     fetch('https://silaben.site/app/public/home/getDataGempaMobile')
       .then(response => response.json())
       .then(data => {
-        console.log(data); // Log untuk memeriksa data yang diterima
+        // console.log(data); // Log untuk memeriksa data yang diterima
         setData(data);
       })
       .catch(error => console.error(error));
@@ -339,15 +379,80 @@ const MapScreen = ({navigation, route}) => {
     getLocation();
   }, [getLocation]);
 
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        const response = await fetch(
+          'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm2=71.06',
+        );
+        const data = await response.json();
+
+        if (Array.isArray(data.data)) {
+          setWeatherData(data.data);
+        } else {
+          console.error('Data tidak dalam format array:', data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      }
+    };
+
+    fetchWeatherData();
+  }, []);
+
+  const renderWeatherMarkers = () => {
+    return weatherData.map((item, index) => {
+      const lokasi = item.lokasi;
+      const cuacaList = item.cuaca;
+      // console.log(cuacaList);
+
+      // Ambil waktu sekarang
+      const date = new Date();
+
+      // Filter cuaca yang paling dekat dengan waktu saat ini
+      const currentWeather = cuacaList.reduce((closest, weather) => {
+        const weatherTime = new Date(weather.local_datetime);
+        return Math.abs(weatherTime - date) <
+          Math.abs(new Date(closest.local_datetime) - date)
+          ? weather
+          : closest;
+      });
+
+      if (currentWeather) {
+        // Menyiapkan konten popup
+        let forecast = `Prakiraan Cuaca Hari Ini\n`;
+
+        cuacaList.forEach(weather => {
+          const weatherTime = new Date(weather.local_datetime);
+          const time = weatherTime.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          });
+          forecast += `${time}: ${weather[0].weather}, ${weather[0].t}°C, ${weather[0].tcc}% awan, ${weather[0].tp} mm curah hujan\n`;
+        });
+
+        const weatherIcon = currentWeather[0].image || 'default-icon.svg';
+        // console.log(weatherIcon);
+
+        return lokasi && lokasi.lat && lokasi.lon ? (
+          <Marker
+            key={index}
+            coordinate={{latitude: lokasi.lat, longitude: lokasi.lon}}
+            title={`Kecamatan ${lokasi.kecamatan}`}
+            description={forecast}
+            image={{uri: weatherIcon}} // Gunakan URL gambar cuaca
+          />
+        ) : null;
+      } else {
+        console.error('Cuaca untuk waktu saat ini tidak ditemukan');
+        return null;
+      }
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <View
-        style={{marginTop: 10, padding: 10, borderRadius: 10, width: '40%'}}>
-        {/* <Button title="Get Location" onPress={getLocation} /> */}
-      </View>
-      {/* <Text>Latitude: {location ? location.coords.latitude : '?'}</Text>
-      <Text>Longitude: {location ? location.coords.longitude : '?'}</Text> */}
-
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -357,6 +462,7 @@ const MapScreen = ({navigation, route}) => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}>
+        {renderWeatherMarkers()}
         {markers.map((marker, index) => (
           <Marker
             key={index}
@@ -387,17 +493,51 @@ const MapScreen = ({navigation, route}) => {
             </Callout>
           </Marker>
         ))}
+        {/* {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={marker.coordinate}
+            onPress={() => setSelectedMarker(marker)}
+            // image={data[0].image || 'default-icon.svg'}
+            style={styles.tag}>
+            <Callout>
+              <View style={styles.callout}>
+                <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Deskripsi: </Text>{' '}
+                  {marker.description}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Lokasi: </Text>
+                  {marker.lokasi}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Level Kerusakan: </Text>
+                  {marker.level}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Status: </Text>
+                  {marker.Status}
+                </Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))} */}
         {/* Current Location Marker */}
         {location && (
           <Marker
             coordinate={{
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
-            }}
-            image={{
-              uri: 'https://silaben.site/app/public/a/assets/img/here.png',
-            }}
-          />
+            }}>
+            <Image
+              source={{
+                uri: 'https://silaben.site/app/public/a/assets/img/here.png',
+              }}
+              style={{width: 60, height: 60}} // Sesuaikan ukuran di sini
+              resizeMode="contain" // Sesuaikan ukuran sesuai kebutuhan
+            />
+          </Marker>
         )}
       </MapView>
 
@@ -459,6 +599,7 @@ const MapScreen = ({navigation, route}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 0,
   },
   map: {
     flex: 1,
