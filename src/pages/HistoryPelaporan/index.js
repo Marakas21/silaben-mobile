@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Navbar from '../../components/Navbar';
 
 const CashonDigital = ({navigation}) => {
   const [reports, setReports] = useState([]);
@@ -28,7 +30,26 @@ const CashonDigital = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <View>
+      <View style={styles.topImageContainer}>
+        <ImageBackground
+          source={require('../../assets/images/bencana-splash.jpg')}
+          style={styles.topImage}
+          imageStyle={styles.imageStyle}>
+          <View style={styles.overlay} />
+          {/* <View style={styles.header}>
+          <Text style={styles.headerText}>SILABEN</Text>
+        </View> */}
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+        </ImageBackground>
+      </View>
+      {/* <View>
         <LinearGradient
           colors={['#0066CC', '#003366']}
           style={styles.header}
@@ -42,37 +63,49 @@ const CashonDigital = ({navigation}) => {
             />
           </TouchableOpacity>
         </LinearGradient>
-      </View>
-      <ScrollView>
-        {reports.map((report, index) => (
-          <View key={index} style={styles.reportCard}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.reportTitle}>
-                {report.jenis_bencana || 'No Title'}
-              </Text>
-              <Text style={styles.status}>{report.status || 'unverified'}</Text>
-            </View>
-            <Text style={styles.date}>{report.report_date || 'No Date'}</Text>
-            <View style={styles.cardInfo}>
-              <Text style={styles.location}>
-                {report.lokasi_bencana || 'No Location'}
-              </Text>
-            </View>
-            {report.report_file_name_bukti ? (
-              <Image
-                source={{uri: getFullImageUrl(report.report_file_name_bukti)}}
-                style={styles.reportImage}
-              />
-            ) : (
-              <Text>No Image Available</Text>
-            )}
-            <Text style={styles.description}>
-              {report.deskripsi_singkat_ai || 'No Description'}
-            </Text>
+      </View> */}
+      <View style={styles.curvedContainer}>
+        <ScrollView>
+          <View style={styles.reportContainer}>
+            {reports.map((report, index) => (
+              <View key={index} style={styles.reportCard}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.reportTitle}>
+                    {report.jenis_bencana || 'No Title'}
+                  </Text>
+                  <Text style={styles.status}>
+                    {report.status || 'unverified'}
+                  </Text>
+                </View>
+                <Text style={styles.date}>
+                  {report.report_date || 'No Date'}
+                </Text>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.location}>
+                    {report.lokasi_bencana || 'No Location'}
+                  </Text>
+                </View>
+                {report.report_file_name_bukti ? (
+                  <Image
+                    source={{
+                      uri: getFullImageUrl(report.report_file_name_bukti),
+                    }}
+                    style={styles.reportImage}
+                  />
+                ) : (
+                  <Text>No Image Available</Text>
+                )}
+                <Text style={styles.description}>
+                  {report.deskripsi_singkat_ai || 'No Description'}
+                </Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </ScrollView>
-      <View style={styles.navbar}>
+        </ScrollView>
+      </View>
+      <Navbar style={styles.navbar} />
+
+      {/* <View style={styles.navbar}>
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => navigation.navigate('Maps')}>
@@ -97,7 +130,7 @@ const CashonDigital = ({navigation}) => {
             style={styles.navIcon}
           />
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 };
@@ -117,23 +150,46 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   headerText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+    padding: 35,
   },
   buttonIcon: {
     width: 24,
     height: 24,
+    marginTop: 35,
+    marginRight: 35,
+  },
+  reportContainer: {
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 100,
+    overflow: 'hidden', // Ensures content doesn't exceed rounded corners
+    backgroundColor: '#fff', // Background color of the report section
+    padding: 10,
+    // eslint-disable-next-line no-dupe-keys
+    overflow: 'hidden',
+  },
+  curvedContainer: {
+    backgroundColor: 'white',
+    marginTop: -20, // Adjust to overlap with the top image
+    borderTopLeftRadius: 30, // Apply a curve to the top-left corner
+    borderTopRightRadius: 30, // Apply a curve to the top-right corner
+    padding: 20,
   },
   reportCard: {
     backgroundColor: 'white',
-    margin: 10,
     padding: 15,
     borderRadius: 10,
     elevation: 4,
+    width: 350,
+    marginBottom: 30,
+    bottom: 150,
+    top: 10,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -189,5 +245,18 @@ const styles = StyleSheet.create({
   navIcon: {
     width: 30,
     height: 30,
+  },
+  topImage: {
+    width: '100%',
+    height: 100,
+    flexDirection: 'row',
+  },
+  imageStyle: {
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0066CC',
+    opacity: 0.5, // Adjust the opacity as needed
   },
 });
