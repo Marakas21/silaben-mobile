@@ -40,6 +40,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#EEEEEE',
     backgroundColor: '#FFFFFF',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   navButton: {
     alignItems: 'center',
