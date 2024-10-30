@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 
 const HomeMasyarakat = ({navigation, route}) => {
+  const [distance, setDistance] = useState(null);
   // Mengambil data dari parameter atau default menjadi objek kosong
   const {jsonData = {}} = route.params || {};
   console.log('Ini json data:', jsonData);
@@ -68,6 +71,153 @@ const HomeMasyarakat = ({navigation, route}) => {
     );
   };
 
+  const [data, setData] = useState({
+    tanggal: '',
+    jam: '',
+    magnitudo: '',
+    kedalaman: '',
+    lintang: '',
+    bujur: '',
+    lokasi: '',
+    dirasakan: '',
+    shakemap: '',
+  });
+
+  useEffect(() => {
+    fetch('https://silaben.site/app/public/home/getDataGempaMobile')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data); // Log untuk memeriksa data yang diterima
+        setData(data);
+      })
+      .catch(error => console.error(error));
+  }, []);
+
+  const TRACK_RADIUS = 13; // in kilometers
+
+  function TrackUserLocation() {
+    const [userLat, setUserLat] = useState(null);
+    const [userLng, setUserLng] = useState(null);
+    const [lastTimestamp, setLastTimestamp] = useState(null);
+
+    useEffect(() => {
+      // Get user's current position
+      Geolocation.getCurrentPosition(
+        position => {
+          setUserLat(position.coords.latitude);
+          setUserLng(position.coords.longitude);
+
+          // Fetch disaster data from Redis at intervals
+          const intervalId = setInterval(() => {
+            fetch(
+              'https://silaben.site/app/public/home/getDisasterDataFromRedis',
+            )
+              .then(response => response.json())
+              .then(data => {
+                console.log('data redis:', data);
+                if (
+                  data.status === 'active' &&
+                  data.timestamp !== lastTimestamp
+                ) {
+                  const disasterLat = data.latitude;
+                  const disasterLng = data.longitude;
+                  const message = data.message;
+
+                  // Calculate distance
+                  const distance = calculateDistance(
+                    userLat,
+                    userLng,
+                    disasterLat,
+                    disasterLng,
+                  );
+                  const distanceInKilometers = Math.floor(distance / 1000);
+                  console.log('distance:', distanceInKilometers);
+
+                  // If user is within the radius, send WhatsApp message
+                  if (distanceInKilometers <= TRACK_RADIUS) {
+                    sendMessage(message);
+                  } else {
+                    console.log("You're not in the radius");
+                  }
+
+                  // Update lastTimestamp after processing
+                  setLastTimestamp(data.timestamp);
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching disaster data:', error);
+              });
+          }, 60000); // Check every minute
+
+          // Cleanup on component unmount
+          return () => clearInterval(intervalId);
+        },
+        error => {
+          console.error('Error getting location:', error);
+          Alert.alert('Location Error', 'Could not retrieve your location.');
+        },
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+      );
+    }, [lastTimestamp, userLat, userLng]); // Only run once when the component mounts
+
+    return null; // or return a JSX component
+  }
+
+  async function sendMessage(message) {
+    const target = dataToUse.whatsapp_number;
+    console.log(target);
+    const url = 'https://api.fonnte.com/send';
+    const payload = new URLSearchParams({
+      target: target,
+      message: message,
+      countryCode: '62', // Optional
+    });
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: 'GRnm9ah7XakS8sJnXhKQ', // Replace with your actual token
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: payload,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.text(); // Change to `.json()` if response is JSON
+      console.log(result);
+    } catch (error) {
+      console.error('Error:', error.message);
+    }
+  }
+
+  // Function to calculate distance between two coordinates using Haversine formula (jarak dalam satuan KM)
+  const calculateDistance = useCallback((lat1, lon1) => {
+    const lat2 = 1.4176958556026646; // koordinat latitude Universitas Klabat
+    const lon2 = 124.98398510245137; // koordinat longitude Universitas Klabat
+    const R = 6371; // radius of the earth in km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c * 1000;
+    setDistance(distance.toFixed(2)); // set the state of distance
+  }, []);
+
+  const toRad = value => {
+    return (value * Math.PI) / 180;
+  };
+
+  TrackUserLocation();
+
   return (
     <View style={styles.container}>
       <View>
@@ -78,7 +228,7 @@ const HomeMasyarakat = ({navigation, route}) => {
       <View style={styles.userContainer}>
         <View style={styles.user}>
           <Image
-            source={require('../../../src/assets/images/big_profile.png')}
+            source={require('../../assets/images/big_profile.png')}
             style={styles.userIcon}
           />
           <View>
@@ -87,63 +237,107 @@ const HomeMasyarakat = ({navigation, route}) => {
           </View>
         </View>
       </View>
-      <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={styles.buttonIconMap}
-          onPress={() => navigation.navigate('MapScreen')}>
-          <Image
-            source={require('../../../src/assets/images/maps.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Peta Bencana</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconReportHistory}
-          onPress={() => navigation.navigate('HistoryPelaporan', {jsonData})}>
-          <Image
-            source={require('../../../src/assets/images/report_history.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>History Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconProfile}
-          onPress={() => navigation.navigate('Profile', {jsonData})}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict2.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconAddReport}
-          onPress={() => navigation.navigate('Pelaporan', {jsonData})}>
-          <Image
-            source={require('../../../src/assets/images/add_report.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Buat Pelaporan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconChangePass}
-          onPress={() => navigation.navigate('Profile', {jsonData})}>
-          <Image
-            source={require('../../../src/assets/images/change_pass.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Ubah Password</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonIconLogout}
-          onPress={handleButtonPress}>
-          <Image
-            source={require('../../../src/assets/images/logout.png')}
-            style={styles.imageButton}
-          />
-          <Text style={styles.menuItemText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-      <Navbar />
+      {/* Button Grid */}
+      <ScrollView>
+        <View style={styles.grid}>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => navigation.navigate('MapScreen')}>
+            <Image
+              source={require('../../../src/assets/images/maps.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Peta Bencana</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => navigation.navigate('HistoryPelaporan', {jsonData})}>
+            <Image
+              source={require('../../../src/assets/images/report_history.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>History Pelaporan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => navigation.navigate('Profile', {jsonData})}>
+            <Image
+              source={require('../../../src/assets/images/add_report.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Buat Pelaporan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => navigation.navigate('Pelaporan', {jsonData})}>
+            <Image
+              source={require('../../../src/assets/images/change_pass.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => navigation.navigate('Profile', {jsonData})}>
+            <Image
+              source={require('../../assets/images/big_profile.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Change Password</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.gridItem} onPress={handleButtonPress}>
+            <Image
+              source={require('../../../src/assets/images/logout.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.containerMap}>
+          <Text style={styles.title}>
+            <Text style={{fontWeight: 'bold'}}>Data Gempa Terkini</Text>
+          </Text>
+
+          <View style={styles.imageContainer}>
+            <Image
+              source={{
+                uri: `https://data.bmkg.go.id/DataMKG/TEWS/${data.shakemap}`,
+              }}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          </View>
+
+          <View style={styles.infoContainer}>
+            <Text
+              style={
+                styles.timeInfo
+              }>{`${data.tanggal}, ${data.jam} WIB`}</Text>
+            <View style={styles.detailsContainer}>
+              <Text style={styles.detailText}>
+                <Text style={styles.boldText}>Magnitudo:</Text> {data.magnitudo}
+              </Text>
+              <Text style={styles.detailText}>
+                <Text style={styles.boldText}>Kedalaman:</Text> {data.kedalaman}{' '}
+                km
+              </Text>
+              <Text style={styles.detailText}>
+                <Text style={styles.boldText}>Lokasi:</Text> {data.lintang} -{' '}
+                {data.bujur}
+              </Text>
+            </View>
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryText}>
+                Pusat gempa berada di {data.lokasi}
+              </Text>
+              <Text style={styles.summaryText}>
+                Dirasakan: {data.dirasakan}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+      <Navbar style={styles.navbar} />
     </View>
   );
 };
@@ -315,6 +509,82 @@ const styles = StyleSheet.create({
     color: '#003366',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    padding: 20,
+  },
+  gridItem: {
+    backgroundColor: '#fff',
+    width: '30%',
+    padding: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: {width: 0, height: 1},
+    elevation: 3,
+  },
+  gridIcon: {
+    width: 30,
+    height: 30,
+    marginBottom: 5,
+  },
+  gridText: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  containerMap: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent black background
+    borderRadius: 10, // rounded corners
+    padding: 10,
+  },
+  title: {
+    fontSize: 18,
+    color: 'white',
+    marginBottom: 10,
+  },
+  imageContainer: {
+    borderRadius: 8,
+    overflow: 'hidden', // to apply rounded corners to Image
+    marginBottom: 10,
+  },
+  image: {
+    width: '100%',
+    height: 200,
+  },
+  infoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', // semi-transparent white for better readability
+    borderRadius: 10,
+    padding: 10,
+  },
+  timeInfo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  detailsContainer: {
+    marginBottom: 10,
+  },
+  detailText: {
+    fontSize: 14,
+    color: 'black',
+  },
+  boldText: {
+    fontWeight: 'bold',
+  },
+  summaryContainer: {
+    marginTop: 10,
+  },
+  summaryText: {
+    fontSize: 14,
+    color: 'black',
+  },
+  contentContainer: {
+    flex: 1,
   },
 });
 
