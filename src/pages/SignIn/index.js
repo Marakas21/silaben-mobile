@@ -41,7 +41,7 @@ const SignIn = ({navigation}) => {
     const timeoutPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         reject(new Error('Request timed out'));
-      }, 10000);
+      }, 15000);
     });
 
     Promise.race([
