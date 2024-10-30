@@ -19,6 +19,7 @@ import HistoryPelaporan from '../pages/HistoryPelaporan';
 import HistoryPelaporanRelawan from '../pages/HistoryPelaporanRelawan';
 import HistoryRelawan from '../pages/HistoryRelawan';
 import ProfileRelawanScreen from '../pages/ProfileRelawan';
+import ChangePasswordScreen from '../pages/ChangePass';
 
 const Stack = createNativeStackNavigator();
 
@@ -99,6 +100,11 @@ const Router = () => {
         <Stack.Screen
           name="ProfileRelawan"
           component={ProfileRelawanScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ChangePass"
+          component={ChangePasswordScreen}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
