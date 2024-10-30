@@ -8,9 +8,12 @@ import {
   Button,
   PermissionsAndroid,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
+import axios from 'axios';
+// import xml2js from 'xml2js';
 
 const MapScreen = ({navigation, route}) => {
   const [markers, setMarkers] = useState([]);
@@ -18,6 +21,8 @@ const MapScreen = ({navigation, route}) => {
   const [location, setLocation] = useState(null);
   const [distance, setDistance] = useState(null);
   const {jsonData = {}} = route.params || {};
+  const [forecastData, setForecastData] = useState([]);
+  const [currentWeather, setCurrentWeather] = useState(null);
 
   // Fungsi untuk mengkalkulasi jarak antara dua koordinat geografis
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -35,24 +40,38 @@ const MapScreen = ({navigation, route}) => {
     return R * c;
   }
 
+  useEffect(() => {
+    const initializeLocation = async () => {
+      const permissionGranted = await requestLocationPermission();
+      if (permissionGranted) {
+        getLocation();
+      }
+    };
+    initializeLocation();
+  }, [getLocation]);
+
   // Fungsi untuk meminta izin akses lokasi
   // eslint-disable-next-line react-hooks/exhaustive-deps
   async function requestLocationPermission() {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message:
-            'This app requires location access to monitor disaster alerts.',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Permission to Access Location',
+            message:
+              'We need access to your location to show your position on the map.',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+      return true; // Assume iOS permissions are granted
+    } catch (err) {
+      console.warn(err);
+      return false;
     }
-    return true;
   }
-
   // Fungsi untuk memulai tracking dan foreground service
   // async function startTracking() {
   //   const hasPermission = await requestLocationPermission();
@@ -114,6 +133,63 @@ const MapScreen = ({navigation, route}) => {
   // useEffect(() => {
   //   startTracking();
   // }, []);
+
+  const [data, setData] = useState({
+    tanggal: '',
+    jam: '',
+    magnitudo: '',
+    kedalaman: '',
+    lintang: '',
+    bujur: '',
+    lokasi: '',
+    dirasakan: '',
+    shakemap: '',
+  });
+  // const [setLoading] = useState(true);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.get(
+  //         'https://silaben.site/app/public/home/getDataGempaMobile',
+  //       );
+
+  //       console.log(response);
+
+  //       setData({
+  //         tanggal: response.Tanggal[0],
+  //         jam: response.Jam[0],
+  //         magnitudo: response.Magnitude[0],
+  //         kedalaman: response.Kedalaman[0],
+  //         lintang: response.Lintang[0],
+  //         bujur: response.Bujur[0],
+  //         lokasi: response.Wilayah[0],
+  //         dirasakan: response.Dirasakan[0],
+  //         shakemap: response.Shakemap[0],
+  //       });
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error('Failed to fetch data:', error);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [setLoading]);
+
+  // if (loading) {
+  //   return <ActivityIndicator size="large" color="#0000ff" />;
+  // }
+
+  useEffect(() => {
+    fetch('https://silaben.site/app/public/home/getDataGempaMobile')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data); // Log untuk memeriksa data yang diterima
+        setData(data);
+      })
+      .catch(error => console.error(error));
+  }, []);
 
   const getTagImage = jenisBencana => {
     switch (jenisBencana.toLowerCase()) {
@@ -182,10 +258,6 @@ const MapScreen = ({navigation, route}) => {
   //   }
   // }, []);
 
-  const toRad = value => {
-    return (value * Math.PI) / 180;
-  };
-
   // const calculateDistance = useCallback((lat1, lon1) => {
   //   const lat2 = 1.4309050145865363;
   //   const lon2 = 124.96914782576363;
@@ -203,16 +275,13 @@ const MapScreen = ({navigation, route}) => {
   //   setDistance(distance.toFixed(2));
   // }, []);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const getLocation = useCallback(async () => {
     const res = await requestLocationPermission();
     if (res) {
       Geolocation.getCurrentPosition(
         position => {
           setLocation(position);
-          calculateDistance(
-            position.coords.latitude,
-            position.coords.longitude,
-          );
         },
         error => {
           console.log(error.code, error.message);
@@ -224,10 +293,6 @@ const MapScreen = ({navigation, route}) => {
       Geolocation.watchPosition(
         position => {
           setLocation(position);
-          calculateDistance(
-            position.coords.latitude,
-            position.coords.longitude,
-          );
         },
         error => {
           console.log(error.code, error.message);
@@ -236,8 +301,9 @@ const MapScreen = ({navigation, route}) => {
         {enableHighAccuracy: true, distanceFilter: 10},
       );
     }
-  }, [requestLocationPermission, calculateDistance]);
+  }, [requestLocationPermission]);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const fetchMarkers = async () => {
       try {
@@ -245,7 +311,7 @@ const MapScreen = ({navigation, route}) => {
           'https://silaben.site/app/public/home/datalaporanmobile',
         );
         const data = await response.json();
-        console.log('Fetched data:', data);
+        // console.log('Fetched data:', data);
 
         const fetchedMarkers = data.map(item => ({
           coordinate: {
@@ -277,11 +343,10 @@ const MapScreen = ({navigation, route}) => {
     <View style={styles.container}>
       <View
         style={{marginTop: 10, padding: 10, borderRadius: 10, width: '40%'}}>
-        <Button title="Get Location" onPress={getLocation} />
+        {/* <Button title="Get Location" onPress={getLocation} /> */}
       </View>
-      <Text>Latitude: {location ? location.coords.latitude : '?'}</Text>
-      <Text>Longitude: {location ? location.coords.longitude : '?'}</Text>
-      <Text>Jarak dengan Unklab: {distance ? distance : '?'} meter.</Text>
+      {/* <Text>Latitude: {location ? location.coords.latitude : '?'}</Text>
+      <Text>Longitude: {location ? location.coords.longitude : '?'}</Text> */}
 
       <MapView
         provider={PROVIDER_GOOGLE}
@@ -322,6 +387,18 @@ const MapScreen = ({navigation, route}) => {
             </Callout>
           </Marker>
         ))}
+        {/* Current Location Marker */}
+        {location && (
+          <Marker
+            coordinate={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            }}
+            image={{
+              uri: 'https://silaben.site/app/public/a/assets/img/here.png',
+            }}
+          />
+        )}
       </MapView>
 
       {selectedMarker && (
