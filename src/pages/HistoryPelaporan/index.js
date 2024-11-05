@@ -10,19 +10,80 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CashonDigital = ({navigation}) => {
+const CashonDigital = ({navigation, route}) => {
   const [reports, setReports] = useState([]);
+  const {jsonData = {}} = route.params || {};
 
+  // Simpan data ke AsyncStorage saat pertama kali menerima
   useEffect(() => {
-    fetch('https://silaben.site/app/public/home/datalaporanmobile')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data); // Log untuk memeriksa data yang diterima
-        setReports(data);
-      })
-      .catch(error => console.error(error));
-  }, []);
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  // Save data to AsyncStorage
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use profile:', dataToUse);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user_id = dataToUse.user_id;
+        const response = await fetch(
+          `https://silaben.site/app/public/home/datalaporanmobile?user_id=${user_id}`,
+          {
+            method: 'POST', // atau GET tergantung pada bagaimana backend Anda diatur
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({user_id: dataToUse.userId}),
+          },
+        );
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log(data);
+        // if (data.status === 'success') {
+        //   setReports(data.data.datalaporan);
+        // } else {
+        //   // Handle specific API error messages
+        //   console.error(data.message);
+        // }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, [dataToUse.userId, dataToUse.user_id]);
 
   const getFullImageUrl = filename => {
     return `https://silaben.site/app/public/fotobukti/${filename}`;
@@ -67,39 +128,40 @@ const CashonDigital = ({navigation}) => {
       <View style={styles.curvedContainer}>
         <ScrollView>
           <View style={styles.reportContainer}>
-            {reports.map((report, index) => (
-              <View key={index} style={styles.reportCard}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.reportTitle}>
-                    {report.jenis_bencana || 'No Title'}
+            {Array.isArray(reports) &&
+              reports.map((report, index) => (
+                <View key={index} style={styles.reportCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.reportTitle}>
+                      {report.jenis_bencana || 'No Title'}
+                    </Text>
+                    <Text style={styles.status}>
+                      {report.status || 'unverified'}
+                    </Text>
+                  </View>
+                  <Text style={styles.date}>
+                    {report.report_date || 'No Date'}
                   </Text>
-                  <Text style={styles.status}>
-                    {report.status || 'unverified'}
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.location}>
+                      {report.lokasi_bencana || 'No Location'}
+                    </Text>
+                  </View>
+                  {report.report_file_name_bukti ? (
+                    <Image
+                      source={{
+                        uri: getFullImageUrl(report.report_file_name_bukti),
+                      }}
+                      style={styles.reportImage}
+                    />
+                  ) : (
+                    <Text>No Image Available</Text>
+                  )}
+                  <Text style={styles.description}>
+                    {report.deskripsi_singkat_ai || 'No Description'}
                   </Text>
                 </View>
-                <Text style={styles.date}>
-                  {report.report_date || 'No Date'}
-                </Text>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.location}>
-                    {report.lokasi_bencana || 'No Location'}
-                  </Text>
-                </View>
-                {report.report_file_name_bukti ? (
-                  <Image
-                    source={{
-                      uri: getFullImageUrl(report.report_file_name_bukti),
-                    }}
-                    style={styles.reportImage}
-                  />
-                ) : (
-                  <Text>No Image Available</Text>
-                )}
-                <Text style={styles.description}>
-                  {report.deskripsi_singkat_ai || 'No Description'}
-                </Text>
-              </View>
-            ))}
+              ))}
           </View>
         </ScrollView>
       </View>
