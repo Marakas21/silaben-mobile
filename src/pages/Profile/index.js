@@ -96,8 +96,12 @@ const ProfileScreen = ({navigation, route}) => {
             editable={false}
           />
         </View>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Change Password</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            navigation.navigate('ChangeProfile', {data: dataToUse})
+          }>
+          <Text style={styles.buttonText}>Change Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.homeButton}
@@ -116,6 +120,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+    border: 20,
   },
   header: {
     width: '100%',
