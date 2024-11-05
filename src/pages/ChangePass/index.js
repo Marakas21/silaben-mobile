@@ -12,6 +12,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Navbar from '../../components/Navbar';
+import {useFocusEffect} from '@react-navigation/native';
 
 const ChangePasswordScreen = ({navigation, route}) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -52,13 +53,17 @@ const ChangePasswordScreen = ({navigation, route}) => {
   }, []);
 
   const dataToUse = storedData || jsonData;
-  console.log('Ini data to use profile:', dataToUse);
+  // console.log('Ini data to use profile:', dataToUse);
 
-  const handleChangePassword = async () => {
-    if (newPassword !== retypeNewPassword) {
-      Alert.alert('Error', 'New password and retype password do not match.');
-      return;
-    }
+  const handleChangePass = async () => {
+    const updatedProfile = {
+      user_id: dataToUse.user_id,
+      old_password: currentPassword,
+      new_password: newPassword,
+      confirm_password: retypeNewPassword,
+    };
+
+    console.log(updatedProfile);
 
     try {
       const response = await fetch(
@@ -67,26 +72,34 @@ const ChangePasswordScreen = ({navigation, route}) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${userToken}`,
           },
-          body: JSON.stringify({
-            current_password: currentPassword,
-            new_password: newPassword,
-          }),
+          body: JSON.stringify(updatedProfile),
         },
       );
 
+      // Log the raw text response for debugging
       const result = await response.json();
+      console.log('Raw Response:', result);
+      // // Extract the JSON part from the raw response
+      // const jsonStartIndex = text.indexOf('{');
+      // const result = JSON.parse(text.substring(jsonStartIndex));
 
-      if (response.ok) {
-        Alert.alert('Success', 'Password has been updated successfully.');
-        navigation.goBack(); // kembali ke halaman profil
-      } else {
-        Alert.alert('Error', result.message || 'Failed to update password.');
+      try {
+        // const result = JSON.parse(text); // Manually parse JSON
+        // // console.log('Parsed Response:', result);
+
+        if (result.success == true) {
+          Alert.alert('Success', 'Password updated successfully');
+          navigation.goBack();
+        } else {
+          Alert.alert('Error', result.message || 'Failed to update profile');
+        }
+      } catch (jsonError) {
+        console.error('JSON Parsing Error:', jsonError);
+        Alert.alert('Error', 'Invalid response from server');
       }
     } catch (error) {
-      console.error('Failed to update password:', error);
-      Alert.alert('Error', 'An error occurred. Please try again.');
+      Alert.alert('Error Message', error.message);
     }
   };
 
@@ -134,7 +147,7 @@ const ChangePasswordScreen = ({navigation, route}) => {
         />
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+      <TouchableOpacity style={styles.button} onPress={handleChangePass}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -204,7 +217,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#003366',
+    color: 'black',
     marginBottom: 5,
   },
   input: {
@@ -215,6 +228,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 12,
     backgroundColor: 'white',
+    color: 'black',
   },
   button: {
     backgroundColor: '#FF5733',
