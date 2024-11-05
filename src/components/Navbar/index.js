@@ -6,7 +6,7 @@ const Navbar = ({navigation}) => {
     <View style={styles.navbar}>
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate('MapScreen')}>
+        onPress={() => navigation.navigate('Maps')}>
         <Image
           source={require('../../../src/assets/images/maps2.png')}
           style={styles.navIcon}
