@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -13,37 +13,44 @@ import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Navbar from '../../components/Navbar';
 
-class ProfileRelawanScreen extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      jsonData: null,
+const ProfileRelawanScreen = ({navigation, route}) => {
+  const {jsonData = {}} = route.params || {};
+  console.log('Ini json data:', jsonData);
+
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
     };
-  }
 
-  componentDidMount() {
-    // Mengambil jsonData dari AsyncStorage
-    AsyncStorage.getItem('jsonData')
-      .then(data => {
-        if (data) {
-          this.setState({jsonData: JSON.parse(data)});
-        }
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }
-
-  renderContent() {
-    const {jsonData} = this.state;
-    if (!jsonData) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <Text>Loading...</Text>
-        </SafeAreaView>
-      );
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
     }
+  }, [jsonData]);
 
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use:', dataToUse);
+  const renderContent = () => {
     return (
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <SafeAreaView style={styles.container}>
@@ -57,79 +64,83 @@ class ProfileRelawanScreen extends Component {
               </View>
             </View>
           </LinearGradient>
-          <Text style={styles.title}>{jsonData.nama_relawan}</Text>
+          <Text style={styles.title}>{dataToUse.nama_relawan}</Text>
           <View style={styles.inputContainer}>
             <Text style={styles.inputTitle}>Alamat</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.alamat}
+              value={dataToUse.alamat}
               editable={false}
             />
             <Text style={styles.inputTitle}>Bidang Keahlian</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.bidang_keahlian}
+              value={dataToUse.bidang_keahlian}
               editable={false}
             />
             <Text style={styles.inputTitle}>Email</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.email}
+              value={dataToUse.email}
               editable={false}
             />
             <Text style={styles.inputTitle}>Jenis Kelamin</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.jenis_kelamin}
+              value={dataToUse.jenis_kelamin}
               editable={false}
             />
             <Text style={styles.inputTitle}>Ketersediaan</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.ketersediaan}
+              value={dataToUse.ketersediaan}
               editable={false}
             />
             <Text style={styles.inputTitle}>NIK</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.nik}
+              value={dataToUse.nik}
               editable={false}
             />
             <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.no_whatsapp}
+              value={dataToUse.no_whatsapp}
               editable={false}
             />
             <Text style={styles.inputTitle}>Tanggal Lahir</Text>
             <TextInput
               style={styles.input}
-              value={jsonData.tanggal_lahir}
+              value={dataToUse.tanggal_lahir}
               editable={false}
             />
           </View>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Change Password</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              navigation.navigate('ChangeProfileRelawan', {data: dataToUse})
+            }>
+            <Text style={styles.buttonText}>Change Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.homeButton}
-            onPress={() => this.props.navigation.navigate('HomeRelawan')}>
+            onPress={() => navigation.navigate('HomeRelawan')}>
             <Text style={styles.homeButtonText}>Home</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </ScrollView>
     );
-  }
+  };
 
-  render() {
-    return this.renderContent();
-  }
-}
+  return renderContent();
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+    marginBottom: 20,
+    padding: 16,
   },
   header: {
     width: '100%',
@@ -173,7 +184,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     paddingHorizontal: 16,
-    marginTop: 50,
+    marginTop: 40,
   },
   input: {
     height: 40,
@@ -183,6 +194,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 12,
     backgroundColor: 'white',
+    color: 'black',
   },
   inputTitle: {
     fontWeight: 'bold',
