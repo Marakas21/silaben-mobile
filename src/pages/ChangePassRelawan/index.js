@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Navbar from '../../components/Navbar';
+import NavbarRelawan from '../../components/NavbarRelawan';
 
 const ChangePasswordRelawanScreen = ({navigation, route}) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -144,7 +144,7 @@ const ChangePasswordRelawanScreen = ({navigation, route}) => {
         onPress={() => navigation.navigate('HomeRelawan')}>
         <Text style={styles.homeButtonText}>Home</Text>
       </TouchableOpacity>
-      <Navbar />
+      <NavbarRelawan />
     </SafeAreaView>
   );
 };
