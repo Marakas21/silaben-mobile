@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Navbar from '../../components/Navbar';
+import NavbarRelawan from '../../components/NavbarRelawan';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 
@@ -350,7 +350,7 @@ const HomeMasyarakat = ({navigation, route}) => {
           </View>
         </View>
       </ScrollView>
-      <Navbar style={styles.navbar} />
+      <NavbarRelawan style={styles.navbar} />
     </View>
   );
 };
