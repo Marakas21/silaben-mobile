@@ -1,12 +1,15 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
-const Navbar = ({navigation}) => {
+const Navbar = () => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.navbar}>
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate('Maps')}>
+        onPress={() => navigation.navigate('MapScreen')}>
         <Image
           source={require('../../../src/assets/images/maps2.png')}
           style={styles.navIcon}
