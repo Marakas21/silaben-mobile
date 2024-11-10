@@ -56,14 +56,19 @@ const HomeMasyarakat = ({navigation, route}) => {
   const handleButtonPress = () => {
     Alert.alert(
       'Confirm Dialog',
-      'Are you sure want to exit?',
+      'Are you sure you want to log out?',
       [
         {text: 'No', style: 'cancel'},
         {
           text: 'Yes',
-          onPress: () => {
-            console.log('Keluar Dilanjutkan dari HomeScreen.');
-            navigation.navigate('SignIn');
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear(); // Clear all stored data
+              console.log('User data cleared from AsyncStorage.');
+              navigation.navigate('SignIn'); // Navigate to SignIn screen
+            } catch (e) {
+              console.error('Error clearing AsyncStorage:', e);
+            }
           },
         },
       ],
