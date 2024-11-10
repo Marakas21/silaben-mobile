@@ -38,6 +38,8 @@ const SignIn = ({navigation}) => {
       role: role,
     };
 
+    // console.log(requestBody);
+
     const timeoutPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
         reject(new Error('Request timed out'));
@@ -64,22 +66,25 @@ const SignIn = ({navigation}) => {
       .then(response => response.text())
       .then(textData => {
         const parsedData = JSON.parse(textData);
-        const jsonData = parsedData['status-login'][0];
+        console.log(parsedData);
 
-        if (textData.includes('ERROR')) {
+        // Check if login status exists and is not empty
+        if (parsedData['status-login']) {
+          const jsonData = parsedData['status-login'];
+
+          if (role === 'relawan') {
+            Alert.alert('Login Success', 'Welcome to Silaben.');
+            navigation.navigate('HomeRelawan', {jsonData: jsonData});
+          } else if (role === 'user') {
+            Alert.alert('Login Success', 'Welcome to Silaben.');
+            navigation.navigate('HomeMasyarakat', {jsonData: jsonData});
+          }
+        } else {
+          // If login data is empty or invalid
           Alert.alert(
             'Error Message',
-            'Sorry, login failed. Please try again.',
+            'Login failed: Incorrect credentials or user not found.',
           );
-          return;
-        }
-
-        if (role === 'relawan') {
-          Alert.alert('Login Success', 'Welcome to Silaben.');
-          navigation.navigate('HomeRelawan', {jsonData: jsonData});
-        } else if (role === 'user') {
-          Alert.alert('Login Success', 'Welcome to Silaben.');
-          navigation.navigate('HomeMasyarakat', {jsonData: jsonData});
         }
       })
       .catch(error => {
@@ -113,9 +118,9 @@ const SignIn = ({navigation}) => {
             onValueChange={itemValue => setRole(itemValue)}
             style={styles.picker}>
             <Picker.Item label="Select your Role" value="" />
-            <Picker.Item label="user" value="user" />
-            <Picker.Item label="admin" value="admin" />
-            <Picker.Item label="relawan" value="relawan" />
+            <Picker.Item label="Anggota Reguler" value="user" />
+            <Picker.Item label="Admin" value="admin" />
+            <Picker.Item label="Relawan" value="relawan" />
           </Picker>
         </View>
         <View style={styles.inputWrapper}>
