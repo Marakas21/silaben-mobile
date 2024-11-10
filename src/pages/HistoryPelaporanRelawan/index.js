@@ -9,23 +9,114 @@ import {
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Navbar from '../../components/Navbar';
+import NavbarRelawan from '../../components/NavbarRelawan';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-const CashonDigital = ({navigation}) => {
+const CashonDigital = ({navigation, route}) => {
   const [reports, setReports] = useState([]);
+  const {jsonData = {}} = route.params || {};
 
+  // Simpan data ke AsyncStorage saat pertama kali menerima
   useEffect(() => {
-    fetch('https://silaben.site/app/public/home/datalaporanmobile')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data); // Log untuk memeriksa data yang diterima
-        setReports(data);
-      })
-      .catch(error => console.error(error));
-  }, []);
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
 
-  const getFullImageUrl = filename => {
-    return `https://silaben.site/app/public/fotobukti/${filename}`;
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+
+  // Save data to AsyncStorage
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  const dataToUse = storedData || jsonData;
+  console.log('Ini data to use profile:', dataToUse);
+
+  // Fetch data from API
+  const fetchData = async () => {
+    if (!dataToUse.user_id) {
+      console.error('user_id is missing');
+      return;
+    }
+
+    try {
+      const user_id = dataToUse.relawan_id;
+      // Use fetch instead of axios
+      const response = await fetch(
+        `https://silaben.site/app/public/home/datalaporanmobile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({user_id}),
+        },
+      );
+
+      // Check if the response is ok (status 200-299)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // fetchData();
+
+      // Parse JSON response
+      const data = await response.json();
+      // console.log(data);
+
+      if (data.status === 'success') {
+        setReports(data.data);
+      } else {
+        // console.error(data.message);
+      }
+
+      // Optionally handle the data
+      // if (data.status === 'success') {
+      //   setReports(data.data.datalaporan);
+      // } else {
+      //   console.error(data.message);
+      // }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchData();
+
+  // Trigger fetching data if reports data is empty
+  useEffect(() => {
+    if (reports) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports]);
+
+  // const fileName = reports.report_file_name_bukti;
+  // console.log('ini report: ', reports);
+
+  const getFullImageUrl = fileName => {
+    return `https://silaben.site/app/public/fotobukti/${fileName}`;
   };
 
   return (
@@ -66,43 +157,44 @@ const CashonDigital = ({navigation}) => {
       <View style={styles.curvedContainer}>
         <ScrollView>
           <View style={styles.reportContainer}>
-            {reports((report, index) => (
-              <View key={index} style={styles.reportCard}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.reportTitle}>
-                    {report.jenis_bencana || 'No Title'}
+            {Array.isArray(reports) &&
+              reports.map((report, index) => (
+                <View key={index} style={styles.reportCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.reportTitle}>
+                      {report.jenis_bencana || 'No Title'}
+                    </Text>
+                    <Text style={styles.status}>
+                      {report.status || 'unverified'}
+                    </Text>
+                  </View>
+                  <Text style={styles.date}>
+                    {report.report_date || 'No Date'}
                   </Text>
-                  <Text style={styles.status}>
-                    {report.status || 'unverified'}
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.location}>
+                      {report.lokasi_bencana || 'No Location'}
+                    </Text>
+                  </View>
+                  {report.report_file_name_bukti ? (
+                    <Image
+                      source={{
+                        uri: getFullImageUrl(report.report_file_name_bukti),
+                      }}
+                      style={styles.reportImage}
+                    />
+                  ) : (
+                    <Text>No Image Available</Text>
+                  )}
+                  <Text style={styles.description}>
+                    {report.deskripsi_singkat_ai || 'No Description'}
                   </Text>
                 </View>
-                <Text style={styles.date}>
-                  {report.report_date || 'No Date'}
-                </Text>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.location}>
-                    {report.lokasi_bencana || 'No Location'}
-                  </Text>
-                </View>
-                {report.report_file_name_bukti ? (
-                  <Image
-                    source={{
-                      uri: getFullImageUrl(report.report_file_name_bukti),
-                    }}
-                    style={styles.reportImage}
-                  />
-                ) : (
-                  <Text>No Image Available</Text>
-                )}
-                <Text style={styles.description}>
-                  {report.deskripsi_singkat_ai || 'No Description'}
-                </Text>
-              </View>
-            ))}
+              ))}
           </View>
         </ScrollView>
       </View>
-      <Navbar style={styles.navbar} />
+      <NavbarRelawan style={styles.navbar} />
 
       {/* <View style={styles.navbar}>
         <TouchableOpacity
