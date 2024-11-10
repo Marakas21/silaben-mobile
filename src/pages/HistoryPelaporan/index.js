@@ -11,6 +11,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const CashonDigital = ({navigation, route}) => {
   const [reports, setReports] = useState([]);
@@ -53,40 +54,69 @@ const CashonDigital = ({navigation, route}) => {
   console.log('Ini data to use profile:', dataToUse);
 
   // Fetch data from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user_id = dataToUse.user_id;
-        const response = await fetch(
-          `https://silaben.site/app/public/home/datalaporanmobile?user_id=${user_id}`,
-          {
-            method: 'POST', // atau GET tergantung pada bagaimana backend Anda diatur
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({user_id: dataToUse.userId}),
-          },
-        );
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log(data);
-        // if (data.status === 'success') {
-        //   setReports(data.data.datalaporan);
-        // } else {
-        //   // Handle specific API error messages
-        //   console.error(data.message);
-        // }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, [dataToUse.userId, dataToUse.user_id]);
+  const fetchData = async () => {
+    if (!dataToUse.user_id) {
+      console.error('user_id is missing');
+      return;
+    }
 
-  const getFullImageUrl = filename => {
-    return `https://silaben.site/app/public/fotobukti/${filename}`;
+    try {
+      const user_id = dataToUse.user_id;
+      // Use fetch instead of axios
+      const response = await fetch(
+        `https://silaben.site/app/public/home/datalaporanmobile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({user_id}),
+        },
+      );
+
+      // Check if the response is ok (status 200-299)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // fetchData();
+
+      // Parse JSON response
+      const data = await response.json();
+      // console.log(data);
+
+      if (data.status === 'success') {
+        setReports(data.data);
+      } else {
+        // console.error(data.message);
+      }
+
+      // Optionally handle the data
+      // if (data.status === 'success') {
+      //   setReports(data.data.datalaporan);
+      // } else {
+      //   console.error(data.message);
+      // }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchData();
+
+  // Trigger fetching data if reports data is empty
+  useEffect(() => {
+    if (reports) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports]);
+
+  // const fileName = reports.report_file_name_bukti;
+  // console.log('ini report: ', reports);
+
+  const getFullImageUrl = fileName => {
+    return `https://silaben.site/app/public/fotobukti/${fileName}`;
   };
 
   return (
