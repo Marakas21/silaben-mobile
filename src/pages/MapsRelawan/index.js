@@ -14,6 +14,7 @@ import {
 import MapView, {Marker, PROVIDER_GOOGLE, Callout} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
+import NavbarRelawan from '../../components/NavbarRelawan';
 // import xml2js from 'xml2js';
 
 const MapScreen = ({navigation, route}) => {
@@ -558,7 +559,7 @@ const MapScreen = ({navigation, route}) => {
       <TouchableOpacity
         style={styles.homeButton}
         onPress={() =>
-          navigation.navigate('HomeMasyarakat', {jsonData: jsonData})
+          navigation.navigate('HomeRelawan', {jsonData: jsonData})
         }>
         <Image
           source={require('../../../src/assets/images/home.png')}
@@ -566,32 +567,7 @@ const MapScreen = ({navigation, route}) => {
         />
       </TouchableOpacity>
 
-      <View style={styles.navbar}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Maps')}>
-          <Image
-            source={require('../../../src/assets/images/maps2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Home')}>
-          <Image
-            source={require('../../../src/assets/images/add_report2.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Profile')}>
-          <Image
-            source={require('../../../src/assets/images/profile_pict3.png')}
-            style={styles.navIcon}
-          />
-        </TouchableOpacity>
-      </View>
+      <NavbarRelawan />
     </View>
   );
 };
