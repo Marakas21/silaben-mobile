@@ -67,7 +67,7 @@ const ChangePasswordScreen = ({navigation, route}) => {
 
     try {
       const response = await fetch(
-        'https://silaben.site/app/public/login/updatePassword',
+        'https://silaben.site/app/public/login/changePassword',
         {
           method: 'POST',
           headers: {
@@ -77,26 +77,17 @@ const ChangePasswordScreen = ({navigation, route}) => {
         },
       );
 
-      // Log the raw text response for debugging
       const result = await response.json();
-      console.log('Raw Response:', result);
-      // // Extract the JSON part from the raw response
-      // const jsonStartIndex = text.indexOf('{');
-      // const result = JSON.parse(text.substring(jsonStartIndex));
+      console.log('Response:', result);
 
-      try {
-        // const result = JSON.parse(text); // Manually parse JSON
-        // // console.log('Parsed Response:', result);
-
-        if (result.success == true) {
-          Alert.alert('Success', 'Password updated successfully');
-          navigation.goBack();
-        } else {
-          Alert.alert('Error', result.message || 'Failed to update profile');
-        }
-      } catch (jsonError) {
-        console.error('JSON Parsing Error:', jsonError);
-        Alert.alert('Error', 'Invalid response from server');
+      if (result.success) {
+        Alert.alert(
+          'Success',
+          result.message || 'Password updated successfully',
+        );
+        navigation.goBack();
+      } else {
+        Alert.alert('Error', result.message || 'Failed to update profile');
       }
     } catch (error) {
       Alert.alert('Error Message', error.message);
