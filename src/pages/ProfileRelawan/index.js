@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Navbar from '../../components/Navbar';
+import NavbarRelawan from '../../components/NavbarRelawan';
 
 const ProfileRelawanScreen = ({navigation, route}) => {
   const {jsonData = {}} = route.params || {};
@@ -52,83 +52,88 @@ const ProfileRelawanScreen = ({navigation, route}) => {
   console.log('Ini data to use:', dataToUse);
   const renderContent = () => {
     return (
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <SafeAreaView style={styles.container}>
-          <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-            <View style={styles.profileIconContainer}>
-              <View style={styles.profileIcon}>
-                <Image
-                  source={require('../../../src/assets/images/profile_pict.png')}
-                  style={styles.profileImage}
-                />
+      <SafeAreaView>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <SafeAreaView style={styles.container}>
+            <LinearGradient
+              colors={['#0066CC', '#003366']}
+              style={styles.header}>
+              <View style={styles.profileIconContainer}>
+                <View style={styles.profileIcon}>
+                  <Image
+                    source={require('../../../src/assets/images/profile_pict.png')}
+                    style={styles.profileImage}
+                  />
+                </View>
               </View>
+            </LinearGradient>
+            <Text style={styles.title}>{dataToUse.nama_relawan}</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputTitle}>Alamat</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.alamat}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Bidang Keahlian</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.bidang_keahlian}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.email}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Jenis Kelamin</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.jenis_kelamin}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Ketersediaan</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.ketersediaan}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>NIK</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.nik}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.no_whatsapp}
+                editable={false}
+              />
+              <Text style={styles.inputTitle}>Tanggal Lahir</Text>
+              <TextInput
+                style={styles.input}
+                value={dataToUse.tanggal_lahir}
+                editable={false}
+              />
             </View>
-          </LinearGradient>
-          <Text style={styles.title}>{dataToUse.nama_relawan}</Text>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputTitle}>Alamat</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.alamat}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Bidang Keahlian</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.bidang_keahlian}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.email}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Jenis Kelamin</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.jenis_kelamin}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Ketersediaan</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.ketersediaan}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>NIK</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.nik}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Nomor Whatsapp</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.no_whatsapp}
-              editable={false}
-            />
-            <Text style={styles.inputTitle}>Tanggal Lahir</Text>
-            <TextInput
-              style={styles.input}
-              value={dataToUse.tanggal_lahir}
-              editable={false}
-            />
-          </View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              navigation.navigate('ChangeProfileRelawan', {data: dataToUse})
-            }>
-            <Text style={styles.buttonText}>Change Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => navigation.navigate('HomeRelawan')}>
-            <Text style={styles.homeButtonText}>Home</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </ScrollView>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() =>
+                navigation.navigate('ChangeProfileRelawan', {data: dataToUse})
+              }>
+              <Text style={styles.buttonText}>Change Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={() => navigation.navigate('HomeRelawan')}>
+              <Text style={styles.homeButtonText}>Home</Text>
+            </TouchableOpacity>
+          </SafeAreaView>
+        </ScrollView>
+        <NavbarRelawan />
+      </SafeAreaView>
     );
   };
 
