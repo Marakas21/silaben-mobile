@@ -1,0 +1,380 @@
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Navbar from '../../components/Navbar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import 'whatwg-fetch';
+
+const CashonDigital = ({navigation, route}) => {
+  const [reports, setReports] = useState([]);
+  const {jsonData = {}} = route.params || {};
+  // console.log('Ini json data:', jsonData);
+
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+  // console.log('Ini data to use history:', dataToUse);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse =
+    Object.keys(storedData || {}).length > 0 ? storedData : jsonData;
+
+  // Fetch data from API
+  const fetchData = async () => {
+    // if (!dataToUse.relawan_id) {
+    //   console.error('relawan_id is missing');
+    //   return;
+    // }
+
+    try {
+      const relawan_id = dataToUse.relawan_id;
+      // Use fetch instead of axios
+      const response = await fetch(
+        `https://silaben.site/app/public/home/historykegiatanrelawanmobile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({relawan_id}),
+        },
+      );
+
+      // Check if the response is ok (status 200-299)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // fetchData();
+
+      // Parse JSON response
+      const data = await response.json();
+      // console.log(data);
+
+      if (data.status === 'success') {
+        setReports(data.data);
+      } else {
+        // console.error(data.message);
+      }
+
+      // Optionally handle the data
+      // if (data.status === 'success') {
+      //   setReports(data.data.datalaporan);
+      // } else {
+      //   console.error(data.message);
+      // }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchData();
+
+  // Trigger fetching data if reports data is empty
+  //   useEffect(() => {
+  //     if (reports) {
+  //       fetchData();
+  //     }
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   }, [reports]);
+
+  // const fileName = reports.report_file_name_bukti;
+  // console.log('ini report: ', reports);
+
+  const getFullImageUrl = fileName => {
+    return `https://silaben.site/app/public/fotobukti/${fileName}`;
+  };
+
+  const handleCompleteReport = async laporan_id => {
+    try {
+      const response = await fetch(
+        'https://silaben.site/app/public/home/updateLaporan',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({laporan_id: laporan_id}),
+        },
+      );
+      if (!response.ok) {
+        throw new Error('Failed to complete report');
+      }
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        // Perbarui laporan di state
+        setReports(prevReports =>
+          prevReports.map(report =>
+            report.laporan_id === laporan_id
+              ? {...report, status: 'selesai'}
+              : report,
+          ),
+        );
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error('Error completing report:', error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.topImageContainer}>
+        <ImageBackground
+          source={require('../../assets/images/bencana-splash.jpg')}
+          style={styles.topImage}
+          imageStyle={styles.imageStyle}>
+          <View style={styles.overlay} />
+          {/* <View style={styles.header}>
+          <Text style={styles.headerText}>SILABEN</Text>
+        </View> */}
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('HomeRelawan')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+        </ImageBackground>
+      </View>
+      {/* <View>
+        <LinearGradient
+          colors={['#0066CC', '#003366']}
+          style={styles.header}
+          onPress={() => navigation.navigate('HomeMasyarakat')}>
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+        </LinearGradient>
+      </View> */}
+      <View style={styles.curvedContainer}>
+        <ScrollView>
+          <View style={styles.reportContainer}>
+            {Array.isArray(reports) &&
+              reports.map((report, index) => (
+                <View key={index} style={styles.reportCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.reportTitle}>
+                      {report.jenis_bencana || 'No Title'}
+                    </Text>
+                    <Text style={styles.status}>
+                      {report.status || 'unverified'}
+                    </Text>
+                  </View>
+                  <Text style={styles.date}>
+                    {report.report_date || 'No Date'}
+                  </Text>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.location}>
+                      {report.lokasi_bencana || 'No Location'}
+                    </Text>
+                  </View>
+                  {report.report_file_name_bukti ? (
+                    <Image
+                      source={{
+                        uri: getFullImageUrl(report.report_file_name_bukti),
+                      }}
+                      style={styles.reportImage}
+                    />
+                  ) : (
+                    <Text>No Image Available</Text>
+                  )}
+                  <Text style={styles.description}>
+                    {report.deskripsi_singkat_ai || 'No Description'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.completeButton}
+                    onPress={() => handleCompleteReport(report.laporan_id)}>
+                    <Text style={styles.completeButtonText}>
+                      Laporan Selesai
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+          </View>
+        </ScrollView>
+      </View>
+      <Navbar style={styles.navbar} />
+    </View>
+  );
+};
+
+export default CashonDigital;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  header: {
+    backgroundColor: '#003366',
+    padding: 30,
+    alignItems: 'center',
+    borderBottomRightRadius: 5,
+    borderBottomLeftRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+  },
+  headerText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+    padding: 35,
+  },
+  buttonIcon: {
+    width: 24,
+    height: 24,
+    marginTop: 35,
+    marginRight: 35,
+  },
+  reportContainer: {
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 100,
+    overflow: 'hidden', // Ensures content doesn't exceed rounded corners
+    backgroundColor: '#fff', // Background color of the report section
+    padding: 10,
+    // eslint-disable-next-line no-dupe-keys
+    overflow: 'hidden',
+  },
+  curvedContainer: {
+    backgroundColor: 'white',
+    marginTop: -20, // Adjust to overlap with the top image
+    borderTopLeftRadius: 30, // Apply a curve to the top-left corner
+    borderTopRightRadius: 30, // Apply a curve to the top-right corner
+    padding: 20,
+  },
+  reportCard: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 10,
+    elevation: 4,
+    width: 350,
+    marginBottom: 30,
+    bottom: 150,
+    top: 10,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  reportTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  status: {
+    fontSize: 14,
+    color: 'red',
+  },
+  date: {
+    fontSize: 14,
+    color: 'grey',
+    marginTop: 5,
+  },
+  cardInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  location: {
+    fontSize: 14,
+    color: 'grey',
+  },
+  reportImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  description: {
+    fontSize: 14,
+    color: 'black',
+    marginTop: 10,
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 15,
+    borderTopWidth: 1,
+    borderColor: '#EEEEEE',
+    backgroundColor: '#FFFFFF',
+    marginTop: 20,
+  },
+  navButton: {
+    alignItems: 'center',
+  },
+  navIcon: {
+    width: 30,
+    height: 30,
+  },
+  topImage: {
+    width: '100%',
+    height: 100,
+    flexDirection: 'row',
+  },
+  imageStyle: {
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0066CC',
+    opacity: 0.5, // Adjust the opacity as needed
+  },
+  completeButton: {
+    marginTop: 10,
+    backgroundColor: '#0066CC',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  completeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+});
