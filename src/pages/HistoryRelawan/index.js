@@ -1,54 +1,273 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
   ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
-import HistoryPelaporan from '../HistoryPelaporan';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-const HistoryRelawan = ({navigation}) => {
+const CashonDigital = ({navigation, route}) => {
+  const [reports, setReports] = useState([]);
+  const {jsonData = {}} = route.params || {};
+  // console.log('Ini json data:', jsonData);
+
+  // Simpan data ke AsyncStorage saat pertama kali menerima
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+      } catch (e) {
+        console.error('Error saving data', e);
+      }
+    };
+
+    if (Object.keys(jsonData).length > 0) {
+      saveData();
+    }
+  }, [jsonData]);
+
+  // Baca data dari AsyncStorage
+  const [storedData, setStoredData] = useState(null);
+  // console.log('Ini data to use history:', dataToUse);
+
+  useEffect(() => {
+    const readData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('@jsonData');
+        setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+      } catch (e) {
+        console.error('Error reading data', e);
+      }
+    };
+
+    readData();
+  }, []);
+
+  const dataToUse = storedData || jsonData;
+
+  // Fetch data from API
+  const fetchData = async () => {
+    if (!dataToUse.relawan_id) {
+      console.error('user_id is missing');
+      return;
+    }
+
+    try {
+      const user_id = dataToUse.relawan_id;
+      // Use fetch instead of axios
+      const response = await fetch(
+        `https://silaben.site/app/public/home/datalaporanmobile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({user_id}),
+        },
+      );
+
+      // Check if the response is ok (status 200-299)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // fetchData();
+
+      // Parse JSON response
+      const data = await response.json();
+      // console.log(data);
+
+      if (data.status === 'success') {
+        setReports(data.data);
+      } else {
+        // console.error(data.message);
+      }
+
+      // Optionally handle the data
+      // if (data.status === 'success') {
+      //   setReports(data.data.datalaporan);
+      // } else {
+      //   console.error(data.message);
+      // }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchData();
+
+  // Trigger fetching data if reports data is empty
+  useEffect(() => {
+    if (reports) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports]);
+
+  // const fileName = reports.report_file_name_bukti;
+  // console.log('ini report: ', reports);
+
+  const getFullImageUrl = fileName => {
+    return `https://silaben.site/app/public/fotobukti/${fileName}`;
+  };
+
+  const handleCompleteReport = async laporan_id => {
+    try {
+      const response = await fetch(
+        'https://silaben.site/app/public/home/updateLaporan',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({laporan_id: laporan_id}),
+        },
+      );
+      if (!response.ok) {
+        throw new Error('Failed to complete report');
+      }
+
+      const data = await response.json();
+      if (data.status === 'success') {
+        // Perbarui laporan di state
+        setReports(prevReports =>
+          prevReports.map(report =>
+            report.laporan_id === laporan_id
+              ? {...report, status: 'selesai'}
+              : report,
+          ),
+        );
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error('Error completing report:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View>
-        <LinearGradient colors={['#0066CC', '#003366']} style={styles.header}>
-          <Text style={styles.headerText}>History Relawan</Text>
-          <Image
-            source={require('../../../src/assets/images/home_white.png')}
-            style={styles.buttonIcon}
-            onPress={() => navigation.navigate('HomeRelawan')}
-          />
+      <View style={styles.topImageContainer}>
+        <ImageBackground
+          source={require('../../assets/images/bencana-splash.jpg')}
+          style={styles.topImage}
+          imageStyle={styles.imageStyle}>
+          <View style={styles.overlay} />
+          {/* <View style={styles.header}>
+          <Text style={styles.headerText}>SILABEN</Text>
+        </View> */}
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
+        </ImageBackground>
+      </View>
+      {/* <View>
+        <LinearGradient
+          colors={['#0066CC', '#003366']}
+          style={styles.header}
+          onPress={() => navigation.navigate('HomeMasyarakat')}>
+          <Text style={styles.headerText}>History Pelaporan</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HomeMasyarakat')}>
+            <Image
+              source={require('../../../src/assets/images/home_white.png')}
+              style={styles.buttonIcon}
+            />
+          </TouchableOpacity>
         </LinearGradient>
+      </View> */}
+      <View style={styles.curvedContainer}>
+        <ScrollView>
+          <View style={styles.reportContainer}>
+            {Array.isArray(reports) &&
+              reports.map((report, index) => (
+                <View key={index} style={styles.reportCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.reportTitle}>
+                      {report.jenis_bencana || 'No Title'}
+                    </Text>
+                    <Text style={styles.status}>
+                      {report.status || 'unverified'}
+                    </Text>
+                  </View>
+                  <Text style={styles.date}>
+                    {report.report_date || 'No Date'}
+                  </Text>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.location}>
+                      {report.lokasi_bencana || 'No Location'}
+                    </Text>
+                  </View>
+                  {report.report_file_name_bukti ? (
+                    <Image
+                      source={{
+                        uri: getFullImageUrl(report.report_file_name_bukti),
+                      }}
+                      style={styles.reportImage}
+                    />
+                  ) : (
+                    <Text>No Image Available</Text>
+                  )}
+                  <Text style={styles.description}>
+                    {report.deskripsi_singkat_ai || 'No Description'}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.completeButton}
+                    onPress={() => handleCompleteReport(report.laporan_id)}>
+                    <Text style={styles.completeButtonText}>
+                      Laporan Selesai
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+          </View>
+        </ScrollView>
       </View>
-      <View style={styles.reportCard}>
-        <View style={styles.cardHeader}>
+      <Navbar style={styles.navbar} />
+
+      {/* <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Maps')}>
           <Image
-            source={require('../../../src/assets/images/bob-marley.png')} // Add your profile image here
-            style={styles.profileImage1}
+            source={require('../../../src/assets/images/maps2.png')}
+            style={styles.navIcon}
           />
-          <Text style={styles.reportTitle}>BPBD Minut</Text>
-          <Text style={styles.status}>Airmadidi</Text>
-        </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.location}>6/10/2024</Text>
-        </View>
-        <View>
-          <Text style={styles.location1}>Banjir Airmadidi</Text>
-          <Text style={styles.location2}>6/10/2024</Text>
-        </View>
-        <Image
-          source={require('../../../src/assets/images/image_report.png')} // Add your report image here
-          style={styles.reportImage}
-        />
-      </View>
-      <Navbar />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Home')}>
+          <Image
+            source={require('../../../src/assets/images/add_report2.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('Profile')}>
+          <Image
+            source={require('../../../src/assets/images/profile_pict3.png')}
+            style={styles.navIcon}
+          />
+        </TouchableOpacity>
+      </View> */}
     </View>
   );
 };
+
+export default CashonDigital;
 
 const styles = StyleSheet.create({
   container: {
@@ -63,59 +282,46 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   headerText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+    padding: 35,
   },
-  profileContainer: {
-    flexDirection: 'row',
-    marginRight: 180,
+  buttonIcon: {
+    width: 24,
+    height: 24,
+    marginTop: 35,
+    marginRight: 35,
   },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 25,
-    marginRight: 10,
+  reportContainer: {
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 100,
+    overflow: 'hidden', // Ensures content doesn't exceed rounded corners
+    backgroundColor: '#fff', // Background color of the report section
+    padding: 10,
+    // eslint-disable-next-line no-dupe-keys
+    overflow: 'hidden',
   },
-  profileImage1: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 10,
-  },
-  profileName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  profileTitle: {
-    fontSize: 18,
-    color: 'white',
-  },
-  navigationTabs: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 30,
-  },
-  activeTab: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    borderBottomWidth: 2,
-    borderBottomColor: 'black',
-  },
-  inactiveTab: {
-    fontSize: 16,
-    color: 'grey',
+  curvedContainer: {
+    backgroundColor: 'white',
+    marginTop: -20, // Adjust to overlap with the top image
+    borderTopLeftRadius: 30, // Apply a curve to the top-left corner
+    borderTopRightRadius: 30, // Apply a curve to the top-right corner
+    padding: 20,
   },
   reportCard: {
     backgroundColor: 'white',
-    margin: 10,
     padding: 15,
     borderRadius: 10,
     elevation: 4,
+    width: 350,
+    marginBottom: 30,
+    bottom: 150,
+    top: 10,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -125,11 +331,15 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginRight: 120,
   },
   status: {
     fontSize: 14,
     color: 'red',
+  },
+  date: {
+    fontSize: 14,
+    color: 'grey',
+    marginTop: 5,
   },
   cardInfo: {
     flexDirection: 'row',
@@ -140,59 +350,57 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 14,
     color: 'grey',
-    padding: 2,
-    marginLeft: 58,
-    marginTop: -15,
-  },
-  location1: {
-    fontSize: 20,
-    color: 'black',
-    padding: 2,
-    marginLeft: 1,
-    marginTop: 10,
-  },
-  location2: {
-    fontSize: 14,
-    color: 'black',
-    padding: 2,
-    marginLeft: 1,
-    marginTop: 10,
-  },
-  date: {
-    fontSize: 14,
-    color: 'grey',
   },
   reportImage: {
-    marginTop: 15,
     width: '100%',
     height: 200,
     borderRadius: 10,
+    marginTop: 10,
   },
-  bottomNavigation: {
+  description: {
+    fontSize: 14,
+    color: 'black',
+    marginTop: 10,
+  },
+  navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 75,
+    padding: 15,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderColor: '#EEEEEE',
+    backgroundColor: '#FFFFFF',
+    marginTop: 20,
   },
-  navItem: {
+  navButton: {
     alignItems: 'center',
   },
-  addButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#f58220',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -30,
-  },
-  addIcon: {
+  navIcon: {
     width: 30,
     height: 30,
-    tintColor: 'white',
+  },
+  topImage: {
+    width: '100%',
+    height: 100,
+    flexDirection: 'row',
+  },
+  imageStyle: {
+    resizeMode: 'cover',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0066CC',
+    opacity: 0.5, // Adjust the opacity as needed
+  },
+  completeButton: {
+    marginTop: 10,
+    backgroundColor: '#0066CC',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  completeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
-
-export default HistoryRelawan;
