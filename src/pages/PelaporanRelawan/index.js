@@ -70,7 +70,7 @@ const Pelaporan = ({navigation, route}) => {
       !location ||
       !date ||
       !time ||
-      !lapor_instansi ||
+      // !lapor_instansi ||
       !locationText
     ) {
       Alert.alert(
@@ -86,12 +86,12 @@ const Pelaporan = ({navigation, route}) => {
     formData.append('input-long-location', location.longitude);
     formData.append('input-lat-location', location.latitude);
     formData.append('input-lokasi-bencana', locationText);
-    formData.append('lapor-instansi', lapor_instansi);
+    // formData.append('lapor-instansi', lapor_instansi);
     formData.append('report-date', date);
     formData.append('report-time', time);
     // formData.append('identity', 'tidak anonim');
-    formData.append('user-id', jsonData.user_id);
-    formData.append('user-role', jsonData.role);
+    formData.append('user-id', jsonData.relawan_id);
+    formData.append('user-role', 'relawan');
     formData.append('user-name', jsonData.nama_relawan);
     formData.append('email', jsonData.email);
     formData.append('report-file', {
@@ -150,7 +150,7 @@ const Pelaporan = ({navigation, route}) => {
           setLocationText('');
           setDate('');
           setTime('');
-          setLaporInstansi('');
+          //setLaporInstansi('');
           setReportFile('');
           setAnonim('');
           setSelectedImage('');
@@ -375,8 +375,7 @@ const Pelaporan = ({navigation, route}) => {
           <Text style={styles.headerText}>SILABEN</Text>
         </View> */}
           <Text style={styles.headerText}>Buat Pelaporan</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HomeMasyarakat')}>
+          <TouchableOpacity onPress={() => navigation.navigate('HomeRelawan')}>
             <Image
               source={require('../../../src/assets/images/home_white.png')}
               style={styles.buttonIcon}
@@ -411,7 +410,7 @@ const Pelaporan = ({navigation, route}) => {
               value={report_title}
               onChangeText={text => setReportTitle(text)}
             />
-            <View style={styles.pickerContainer}>
+            {/* <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={lapor_instansi}
                 onValueChange={itemValue => setLaporInstansi(itemValue)}
@@ -457,7 +456,7 @@ const Pelaporan = ({navigation, route}) => {
                   value="Lainnya"
                 />
               </Picker>
-            </View>
+            </View> */}
             <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
               <Text
                 style={styles.inputText}
