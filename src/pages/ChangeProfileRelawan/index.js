@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'whatwg-fetch';
 
 const ChangeProfileRelawan = ({navigation, route}) => {
   const {data} = route.params;
@@ -27,24 +28,59 @@ const ChangeProfileRelawan = ({navigation, route}) => {
 
   const saveProfile = async () => {
     const updatedData = {
+      relawan_id: data.relawan_id,
       nama_relawan: name,
       alamat: address,
       bidang_keahlian: expertise,
       email,
       jenis_kelamin: gender,
       ketersediaan: availability,
+      gender: gender,
       nik,
       no_whatsapp: whatsapp,
       tanggal_lahir: birthdate,
     };
 
     try {
-      await AsyncStorage.setItem('@jsonData', JSON.stringify(updatedData));
-      Alert.alert('Success', 'Profile updated successfully');
-      navigation.goBack(); // Kembali ke layar sebelumnya
-    } catch (e) {
-      console.error('Error saving profile', e);
-      Alert.alert('Error', 'Failed to save profile');
+      const response = await fetch(
+        'https://silaben.site/app/public/login/updateRelawan',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedData),
+        },
+      );
+
+      // if (!response) {
+      //   throw new Error('Network response was not ok');
+      // }
+
+      // Log the raw text response for debugging
+      const text = await response.text();
+
+      console.log('Raw Response:', response);
+      // // Extract the JSON part from the raw response
+      // const jsonStartIndex = text.indexOf('{');
+      // const result = JSON.parse(text.substring(jsonStartIndex));
+
+      try {
+        // const result = JSON.parse(text); // Manually parse JSON
+        // // console.log('Parsed Response:', result);
+
+        if (text) {
+          Alert.alert('Success', 'Profile updated successfully');
+          navigation.goBack();
+        } else {
+          Alert.alert('Error', text.message || 'Failed to update profile');
+        }
+      } catch (jsonError) {
+        console.error('JSON Parsing Error:', jsonError);
+        Alert.alert('Error', 'Invalid response from server');
+      }
+    } catch (error) {
+      Alert.alert('Error Message', error.message);
     }
   };
 
@@ -112,7 +148,7 @@ const ChangeProfileRelawan = ({navigation, route}) => {
             onChangeText={setWhatsapp}
           />
 
-          <Text style={styles.inputTitle}>Birthdate</Text>
+          <Text style={styles.inputTitle}>Birthday</Text>
           <TextInput
             style={styles.input}
             value={birthdate}
