@@ -9,7 +9,7 @@ const Navbar = () => {
     <View style={styles.navbar}>
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate('MapRelawan')}>
+        onPress={() => navigation.navigate('HomeRelawan')}>
         <Image
           source={require('../../../src/assets/images/maps2.png')}
           style={styles.navIcon}
