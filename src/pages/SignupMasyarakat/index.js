@@ -37,10 +37,10 @@ const SignupMasyarakat = ({navigation}) => {
       return;
     }
 
-    // if (passwordrelawan !== passwordrelawan) {
-    //   Alert.alert('Student Password', 'Please re-type the same password.');
-    //   return;
-    // }
+    if (password !== password) {
+      Alert.alert('Student Password', 'Please re-type the same password.');
+      return;
+    }
 
     // if (password !== repassword) {
     //   Alert.alert(
