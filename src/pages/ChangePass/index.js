@@ -13,6 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Navbar from '../../components/Navbar';
 import {useFocusEffect} from '@react-navigation/native';
+import 'whatwg-fetch';
 
 const ChangePasswordScreen = ({navigation, route}) => {
   const [currentPassword, setCurrentPassword] = useState('');
