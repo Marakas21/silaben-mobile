@@ -66,25 +66,28 @@ const SignIn = ({navigation}) => {
       .then(response => response.text())
       .then(textData => {
         const parsedData = JSON.parse(textData);
-        console.log(parsedData);
+        // console.log('ini text data: ', textData);
+        // console.log('ini parse data: ', parsedData);
 
         // Check if login status exists and is not empty
-        if (parsedData['status-login']) {
-          const jsonData = parsedData['status-login'];
 
-          if (role === 'relawan') {
+        const jsonData = parsedData['status-login'];
+        console.log('ini data json login: ', jsonData);
+
+        if (
+          !parsedData['status-login'] ||
+          (Array.isArray(parsedData['status-login']) &&
+            parsedData['status-login'].length === 0)
+        ) {
+          Alert.alert('Sorry, login failed. Please try again.');
+        } else {
+          if (role === 'relawan' && jsonData) {
             Alert.alert('Login Success', 'Welcome to Silaben.');
             navigation.navigate('HomeRelawan', {jsonData: jsonData});
-          } else if (role === 'user') {
+          } else if (role === 'user' && jsonData) {
             Alert.alert('Login Success', 'Welcome to Silaben.');
             navigation.navigate('HomeMasyarakat', {jsonData: jsonData});
           }
-        } else {
-          // If login data is empty or invalid
-          Alert.alert(
-            'Error Message',
-            'Login failed: Incorrect credentials or user not found.',
-          );
         }
       })
       .catch(error => {
@@ -119,7 +122,7 @@ const SignIn = ({navigation}) => {
             style={styles.picker}>
             <Picker.Item label="Select your Role" value="" />
             <Picker.Item label="Anggota Reguler" value="user" />
-            <Picker.Item label="Admin" value="admin" />
+            {/* <Picker.Item label="Admin" value="admin" /> */}
             <Picker.Item label="Relawan" value="relawan" />
           </Picker>
         </View>
@@ -154,9 +157,9 @@ const SignIn = ({navigation}) => {
             autoCompleteType="password"
           />
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+        {/* <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.sub3HeaderText}>Forgot Password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
