@@ -75,105 +75,6 @@ const MapScreen = ({navigation, route}) => {
     }
   }
 
-  // useEffect(() => {
-  //   const fetchWeatherData = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm2=71.06',
-  //       );
-  //       const data = await response.json();
-  //       console.log(data.cuaca);
-
-  //       if (Array.isArray(data.data)) {
-  //         setForecastData(data.data);
-
-  //         // Determine the closest weather forecast to the current time
-  //         const now = new Date();
-  //         data.data.forEach(item => {
-  //           const cuacaList = item.cuaca;
-
-  //           const closestWeather = cuacaList.reduce((closest, weather) => {
-  //             const weatherTime = new Date(weather.local_datetime);
-  //             return Math.abs(weatherTime - now) <
-  //               Math.abs(new Date(closest.local_datetime) - now)
-  //               ? weather
-  //               : closest;
-  //           });
-
-  //           setCurrentWeather(closestWeather);
-  //         });
-  //       } else {
-  //         console.error('Data not in array format:', data.data);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching data', error);
-  //     }
-  //   };
-
-  //   fetchWeatherData();
-  // }, []);
-  // Fungsi untuk memulai tracking dan foreground service
-  // async function startTracking() {
-  //   const hasPermission = await requestLocationPermission();
-  //   if (!hasPermission) return;
-
-  //   ForegroundService.start({
-  //     id: 1,
-  //     title: 'Disaster Alert Tracking',
-  //     message: 'Tracking your location in background.',
-  //   });
-
-  //   const radius = 13; // Radius dalam kilometer
-
-  //   // Watch Position untuk update lokasi secara berkala
-  //   Geolocation.watchPosition(
-  //     async position => {
-  //       const {latitude, longitude} = position.coords;
-
-  //       try {
-  //         // Ambil data bencana dari API
-  //         const response = await fetch(
-  //           'https://silaben.site/app/public/home/getDisasterDataFromRedis',
-  //         );
-  //         const data = await response.json();
-
-  //         if (data.status === 'active') {
-  //           const disasterLat = data.latitude;
-  //           const disasterLng = data.longitude;
-  //           const message = data.message;
-
-  //           // Kalkulasi jarak pengguna dari lokasi bencana
-  //           const distance = calculateDistance(
-  //             latitude,
-  //             longitude,
-  //             disasterLat,
-  //             disasterLng,
-  //           );
-
-  //           // Jika jarak dalam radius, kirim notifikasi WhatsApp
-  //           if (distance <= radius) {
-  //             Alert.alert('Peringatan!', message);
-  //             sendMessage(message);
-  //           }
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching disaster data:', error);
-  //       }
-  //     },
-  //     error => {
-  //       console.error('Error watching position:', error);
-  //     },
-  //     {
-  //       enableHighAccuracy: true,
-  //       distanceFilter: 50, // Update lokasi setiap kali jarak berubah sejauh 50 meter
-  //     },
-  //   );
-  // }
-
-  // useEffect(() => {
-  //   startTracking();
-  // }, []);
-
   const [data, setData] = useState({
     tanggal: '',
     jam: '',
@@ -186,40 +87,6 @@ const MapScreen = ({navigation, route}) => {
     shakemap: '',
   });
   // const [setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         'https://silaben.site/app/public/home/getDataGempaMobile',
-  //       );
-
-  //       console.log(response);
-
-  //       setData({
-  //         tanggal: response.Tanggal[0],
-  //         jam: response.Jam[0],
-  //         magnitudo: response.Magnitude[0],
-  //         kedalaman: response.Kedalaman[0],
-  //         lintang: response.Lintang[0],
-  //         bujur: response.Bujur[0],
-  //         lokasi: response.Wilayah[0],
-  //         dirasakan: response.Dirasakan[0],
-  //         shakemap: response.Shakemap[0],
-  //       });
-  //       setLoading(false);
-  //     } catch (error) {
-  //       console.error('Failed to fetch data:', error);
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [setLoading]);
-
-  // if (loading) {
-  //   return <ActivityIndicator size="large" color="#0000ff" />;
-  // }
 
   useEffect(() => {
     fetch('https://silaben.site/app/public/home/getDataGempaMobile')
@@ -276,45 +143,6 @@ const MapScreen = ({navigation, route}) => {
     return `https://silaben.site/app/public/fotobukti/${filename}`;
   };
 
-  // const requestLocationPermission = useCallback(async () => {
-  //   try {
-  //     if (Platform.OS === 'android') {
-  //       const granted = await PermissionsAndroid.request(
-  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //         {
-  //           title: 'Geolocation Permission',
-  //           message: 'Can we access your location?',
-  //           buttonNeutral: 'Ask Me Later',
-  //           buttonNegative: 'Cancel',
-  //           buttonPositive: 'OK',
-  //         },
-  //       );
-  //       return granted === PermissionsAndroid.RESULTS.GRANTED;
-  //     }
-  //     return true;
-  //   } catch (err) {
-  //     console.warn(err);
-  //     return false;
-  //   }
-  // }, []);
-
-  // const calculateDistance = useCallback((lat1, lon1) => {
-  //   const lat2 = 1.4309050145865363;
-  //   const lon2 = 124.96914782576363;
-  //   const R = 6371;
-  //   const dLat = toRad(lat2 - lat1);
-  //   const dLon = toRad(lon2 - lon1);
-  //   const a =
-  //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-  //     Math.cos(toRad(lat1)) *
-  //       Math.cos(toRad(lat2)) *
-  //       Math.sin(dLon / 2) *
-  //       Math.sin(dLon / 2);
-  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  //   const distance = R * c * 1000;
-  //   setDistance(distance.toFixed(2));
-  // }, []);
-
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const getLocation = useCallback(async () => {
     const res = await requestLocationPermission();
@@ -348,7 +176,7 @@ const MapScreen = ({navigation, route}) => {
     const fetchMarkers = async () => {
       try {
         const response = await fetch(
-          'https://silaben.site/app/public/home/datalaporanmobile',
+          'https://silaben.site/app/public/home/datalaporanmobileall',
         );
         const data = await response.json();
         // console.log('Fetched data:', data);
@@ -371,7 +199,7 @@ const MapScreen = ({navigation, route}) => {
 
         setMarkers(fetchedMarkers);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        // console.error('Error fetching data:', error);
       }
     };
 
@@ -420,16 +248,16 @@ const MapScreen = ({navigation, route}) => {
 
       if (currentWeather) {
         // Menyiapkan konten popup
-        let forecast = `Prakiraan Cuaca Hari Ini\n`;
+        let forecast = '';
 
         cuacaList.forEach(weather => {
-          const weatherTime = new Date(weather.local_datetime);
+          const weatherTime = new Date(weather[0].local_datetime);
           const time = weatherTime.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
             hour12: true,
           });
-          forecast += `${time}: ${weather[0].weather}, ${weather[0].t}°C, ${weather[0].tcc}% awan, ${weather[0].tp} mm curah hujan\n`;
+          forecast += `${time}: ${weather[0].weather_desc}, ${weather[0].t}°C, ${weather[0].tcc}% awan, ${weather[0].tp} mm curah hujan\n`;
         });
 
         const weatherIcon = currentWeather[0].image || 'default-icon.svg';
@@ -441,8 +269,32 @@ const MapScreen = ({navigation, route}) => {
             coordinate={{latitude: lokasi.lat, longitude: lokasi.lon}}
             title={`Kecamatan ${lokasi.kecamatan}`}
             description={forecast}
-            image={{uri: weatherIcon}} // Gunakan URL gambar cuaca
-          />
+            image={{uri: weatherIcon}}>
+            {/* <Callout>
+              <View style={styles.callout}>
+                <Text
+                  style={
+                    styles.calloutTitle
+                  }>{`Cuaca di Kecamatan ${lokasi.kecamatan}`}</Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Deskripsi: </Text>
+                  {forecast}
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Temperatur: </Text>
+                  {currentWeather.t}°C
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Kelembaban: </Text>
+                  {currentWeather.tcc}%
+                </Text>
+                <Text style={styles.calloutDescription}>
+                  <Text style={{fontWeight: 'bold'}}>Curah Hujan: </Text>
+                  {currentWeather.tp} mm
+                </Text>
+              </View>
+            </Callout> */}
+          </Marker>
         ) : null;
       } else {
         console.error('Cuaca untuk waktu saat ini tidak ditemukan');
@@ -493,37 +345,7 @@ const MapScreen = ({navigation, route}) => {
             </Callout>
           </Marker>
         ))}
-        {/* {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            coordinate={marker.coordinate}
-            onPress={() => setSelectedMarker(marker)}
-            // image={data[0].image || 'default-icon.svg'}
-            style={styles.tag}>
-            <Callout>
-              <View style={styles.callout}>
-                <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutDescription}>
-                  <Text style={{fontWeight: 'bold'}}>Deskripsi: </Text>{' '}
-                  {marker.description}
-                </Text>
-                <Text style={styles.calloutDescription}>
-                  <Text style={{fontWeight: 'bold'}}>Lokasi: </Text>
-                  {marker.lokasi}
-                </Text>
-                <Text style={styles.calloutDescription}>
-                  <Text style={{fontWeight: 'bold'}}>Level Kerusakan: </Text>
-                  {marker.level}
-                </Text>
-                <Text style={styles.calloutDescription}>
-                  <Text style={{fontWeight: 'bold'}}>Status: </Text>
-                  {marker.Status}
-                </Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))} */}
-        {/* Current Location Marker */}
+
         {location && (
           <Marker
             coordinate={{
@@ -609,7 +431,13 @@ const styles = StyleSheet.create({
     height: 20,
   },
   callout: {
-    width: 150,
+    maxWidth: 250, // Set a max width for the popup content
+    padding: 10,
+    backgroundColor: 'white', // Ensure background color is visible
+    borderRadius: 8,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    flexDirection: 'column',
   },
   calloutTitle: {
     fontSize: 16,
@@ -619,6 +447,7 @@ const styles = StyleSheet.create({
   calloutDescription: {
     fontSize: 12,
     color: 'black',
+    lineHeight: 20,
   },
   markerDetails: {
     position: 'absolute',
