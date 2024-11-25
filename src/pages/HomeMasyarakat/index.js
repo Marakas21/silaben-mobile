@@ -7,11 +7,14 @@ import {
   Image,
   Alert,
   ScrollView,
+  Vibration,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Navbar from '../../components/Navbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+// import PushNotification from 'react-native-push-notification';
+import 'whatwg-fetch';
 
 const HomeMasyarakat = ({navigation, route}) => {
   const [distance, setDistance] = useState(null);
@@ -141,6 +144,17 @@ const HomeMasyarakat = ({navigation, route}) => {
                   // If user is within the radius, send WhatsApp message
                   if (distanceInKilometers <= TRACK_RADIUS) {
                     sendMessage(message);
+
+                    // Push Notification
+                    // PushNotification.localNotification({
+                    //   title: 'Peringatan Bencana',
+                    //   message: message,
+                    //   playSound: true,
+                    //   soundName: 'default',
+                    // });
+
+                    // Vibration
+                    Vibration.vibrate(500);
                   } else {
                     console.log("You're not in the radius");
                   }
