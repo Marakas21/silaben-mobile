@@ -12,6 +12,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NavbarRelawan from '../../components/NavbarRelawan';
+import 'whatwg-fetch';
 
 const ChangePasswordRelawanScreen = ({navigation, route}) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -52,43 +53,46 @@ const ChangePasswordRelawanScreen = ({navigation, route}) => {
   }, []);
 
   const dataToUse = storedData || jsonData;
-  console.log('Ini data to use profile:', dataToUse);
+  // console.log('Ini data to use profile:', dataToUse);
 
   const handleChangePassword = async () => {
-    if (newPassword !== retypeNewPassword) {
-      Alert.alert('Error', 'New password and retype password do not match.');
-      return;
-    }
+    const updatedProfile = {
+      relawan_id: dataToUse.relawan_id,
+      old_password: currentPassword,
+      new_password: newPassword,
+      confirm_password: retypeNewPassword,
+    };
+
+    console.log(updatedProfile);
 
     try {
       const response = await fetch(
-        'https://silaben.site/app/public/login/updatePassword',
+        'https://silaben.site/app/public/login/changePasswordRelawan',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${userToken}`,
+            // Authorization: `Bearer ${userToken}`,
           },
-          body: JSON.stringify({
-            current_password: currentPassword,
-            new_password: newPassword,
-          }),
+          body: JSON.stringify(updatedProfile),
         },
       );
 
       // Cek apakah respons memiliki isi
-      const responseText = await response.text();
-      const result = responseText ? JSON.parse(responseText) : {};
+      const result = await response.json();
+      console.log('Response:', result);
 
-      if (response.ok) {
-        Alert.alert('Success', 'Password has been updated successfully.');
-        navigation.goBack(); // kembali ke halaman profil
+      if (result.success) {
+        Alert.alert(
+          'Success',
+          result.message || 'Password updated successfully',
+        );
+        navigation.goBack();
       } else {
-        Alert.alert('Error', result.message || 'Failed to update password.');
+        Alert.alert('Error', result.message || 'Failed to update profile');
       }
     } catch (error) {
-      console.error('Failed to update password:', error);
-      Alert.alert('Error', 'An error occurred. Please try again.');
+      Alert.alert('Error Message', error.message);
     }
   };
 
