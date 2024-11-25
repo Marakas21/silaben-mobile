@@ -132,7 +132,7 @@ const ProfileRelawanScreen = ({navigation, route}) => {
             </TouchableOpacity>
           </SafeAreaView>
         </ScrollView>
-        <NavbarRelawan />
+        <NavbarRelawan navigation={navigation} />
       </SafeAreaView>
     );
   };
