@@ -23,6 +23,9 @@ import ChangePasswordScreen from '../pages/ChangePass';
 import ChangePasswordRelawanScreen from '../pages/ChangePassRelawan';
 import EditProfileScreen from '../pages/ChangeProfile';
 import EditProfileRelawanScreen from '../pages/ChangeProfileRelawan';
+import DaftarKegiatan from '../pages/DaftarKegiatanRelawan';
+import HistoryKegiatan from '../pages/HistoryKegiatanRelawan';
+import DetailKegiatan from '../pages/DetailDaftarKegiatanRelawan';
 
 const Stack = createNativeStackNavigator();
 
@@ -123,6 +126,21 @@ const Router = () => {
         <Stack.Screen
           name="ChangeProfileRelawan"
           component={EditProfileRelawanScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="DaftarKegiatanRelawan"
+          component={DaftarKegiatan}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="HistoryKegiatanRelawan"
+          component={HistoryKegiatan}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="DetailDaftarKegiatanRelawan"
+          component={DetailKegiatan}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
