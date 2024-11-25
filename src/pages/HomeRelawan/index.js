@@ -7,17 +7,20 @@ import {
   Image,
   Alert,
   ScrollView,
+  Vibration,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import NavbarRelawan from '../../components/NavbarRelawan';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+// import PushNotification from 'react-native-push-notification';
+import 'whatwg-fetch';
 
 const HomeMasyarakat = ({navigation, route}) => {
   const [distance, setDistance] = useState(null);
   // Mengambil data dari parameter atau default menjadi objek kosong
   const {jsonData = {}} = route.params || {};
-  console.log('Ini json data:', jsonData);
+  //console.log('Ini json data:', jsonData);
 
   // Simpan data ke AsyncStorage saat pertama kali menerima
   useEffect(() => {
@@ -51,7 +54,7 @@ const HomeMasyarakat = ({navigation, route}) => {
   }, []);
 
   const dataToUse = storedData || jsonData;
-  console.log('Ini data to use:', dataToUse);
+  //console.log('Ini data to use:', dataToUse);
 
   const handleButtonPress = () => {
     Alert.alert(
@@ -101,6 +104,14 @@ const HomeMasyarakat = ({navigation, route}) => {
     const [lastTimestamp, setLastTimestamp] = useState(null);
 
     useEffect(() => {
+      // PushNotification.configure({
+      //   onNotification: function (notification) {
+      //     console.log('NOTIFICATION:', notification);
+      //   },
+      //   popInitialNotification: true,
+      //   requestPermissions: true,
+      // });
+
       // Get user's current position
       Geolocation.getCurrentPosition(
         position => {
@@ -136,6 +147,17 @@ const HomeMasyarakat = ({navigation, route}) => {
                   // If user is within the radius, send WhatsApp message
                   if (distanceInKilometers <= TRACK_RADIUS) {
                     sendMessage(message);
+
+                    // Push Notification
+                    // PushNotification.localNotification({
+                    //   title: 'Peringatan Bencana',
+                    //   message: message,
+                    //   playSound: true,
+                    //   soundName: 'default',
+                    // });
+
+                    // Vibration
+                    Vibration.vibrate(500);
                   } else {
                     console.log("You're not in the radius");
                   }
@@ -271,6 +293,28 @@ const HomeMasyarakat = ({navigation, route}) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.gridItem}
+            onPress={() =>
+              navigation.navigate('DaftarKegiatanRelawan', {jsonData})
+            }>
+            <Image
+              source={require('../../../src/assets/images/add_report.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>Daftar Kegiatan Relawan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() =>
+              navigation.navigate('HistoryKegiatanRelawan', {jsonData})
+            }>
+            <Image
+              source={require('../../../src/assets/images/add_report.png')}
+              style={styles.gridIcon}
+            />
+            <Text style={styles.gridText}>History Kegiatan Relawan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.gridItem}
             onPress={() => navigation.navigate('ProfileRelawan', {jsonData})}>
             <Image
               source={require('../../assets/images/big_profile.png')}
@@ -296,13 +340,13 @@ const HomeMasyarakat = ({navigation, route}) => {
             />
             <Text style={styles.gridText}>Logout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.gridItem} onPress={handleButtonPress}>
+          {/* <TouchableOpacity style={styles.gridItem} onPress={handleButtonPress}>
             <Image
               source={require('../../../src/assets/images/logout.png')}
               style={styles.gridIcon}
             />
             <Text style={styles.gridText}>Logout</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <View style={styles.containerMap}>
           <Text style={styles.title}>
@@ -535,7 +579,7 @@ const styles = StyleSheet.create({
     height: '30%',
     padding: 10,
     alignItems: 'center',
-    marginVertical: 9,
+    marginVertical: 10,
     borderRadius: 25,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -545,7 +589,7 @@ const styles = StyleSheet.create({
   gridIcon: {
     width: 30,
     height: 30,
-    // marginBottom: 8,
+    marginBottom: 8,
   },
   gridText: {
     fontSize: 9,
@@ -610,5 +654,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
 export default HomeMasyarakat;
