@@ -1,15 +1,51 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Navbar = () => {
+const Navbar = ({route}) => {
   const navigation = useNavigation();
+  // const {jsonData = {}} = route.params || {};
+  // console.log('Ini json data:', jsonData);
+
+  // // Simpan data ke AsyncStorage saat pertama kali menerima
+  // useEffect(() => {
+  //   const saveData = async () => {
+  //     try {
+  //       await AsyncStorage.setItem('@jsonData', JSON.stringify(jsonData));
+  //     } catch (e) {
+  //       console.error('Error saving data', e);
+  //     }
+  //   };
+
+  //   if (Object.keys(jsonData).length > 0) {
+  //     saveData();
+  //   }
+  // }, [jsonData]);
+
+  // // Baca data dari AsyncStorage
+  // const [storedData, setStoredData] = useState(null);
+
+  // useEffect(() => {
+  //   const readData = async () => {
+  //     try {
+  //       const jsonValue = await AsyncStorage.getItem('@jsonData');
+  //       setStoredData(jsonValue != null ? JSON.parse(jsonValue) : {});
+  //     } catch (e) {
+  //       console.error('Error reading data', e);
+  //     }
+  //   };
+
+  //   readData();
+  // }, []);
+
+  // const dataToUse = storedData || jsonData;
 
   return (
     <View style={styles.navbar}>
       <TouchableOpacity
         style={styles.navButton}
-        onPress={() => navigation.navigate('MapScreen')}>
+        onPress={() => navigation.navigate('HomeMasyarakat')}>
         <Image
           source={require('../../../src/assets/images/maps2.png')}
           style={styles.navIcon}
